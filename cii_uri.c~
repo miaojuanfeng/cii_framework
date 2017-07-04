@@ -102,6 +102,7 @@ zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, si
 		zval_dtor(&zstr);
 		zval_ptr_dtor(query);
     }
+zval_ptr_dtor(&test);
 }
 /**
 * Fetch URI Segment

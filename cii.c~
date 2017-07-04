@@ -247,6 +247,7 @@ PHP_FUNCTION(cii_run)
 	*/
 	MAKE_STD_ZVAL(CII_G(loader_obj));
 	object_init_ex(CII_G(loader_obj), cii_loader_ce);
+
 	if (zend_hash_exists(&cii_loader_ce->function_table, "__construct", 12)) {
 		zval *cii_loader_retval;
 		CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "__construct", &cii_loader_retval, 0, NULL);
