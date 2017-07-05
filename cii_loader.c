@@ -1,7 +1,40 @@
 #include "cii_loader.h"
+#include "cii_database.c"
 
 zend_class_entry *cii_loader_ce;
 
+ZEND_BEGIN_ARG_INFO_EX(cii_loader___get_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+
+/*
+*	function cii___get()
+*/
+ZEND_API void cii___get(INTERNAL_FUNCTION_PARAMETERS)
+{
+	char *key;
+	uint key_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	zval *value = zend_read_property(cii_loader_ce, CII_G(loader_obj), key, key_len, 1 TSRMLS_CC);
+	RETURN_ZVAL(value, 1, 0);
+}
+/*
+*	function __get(string key)
+*/
+PHP_FUNCTION(cii_model___get)
+{
+	cii___get(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+/*  
+*	cii_loader::__get()
+*/
+//PHP_ME_MAPPING( cii_loader, __get, NULL)
+PHP_METHOD(cii_loader, __get)
+{
+	cii___get(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
 /**
 * Class constructor
 *
@@ -196,6 +229,32 @@ PHP_METHOD(cii_loader, model){
 		MAKE_STD_ZVAL(new_object);
 		object_init_ex(new_object, *ce);
 		/*
+		*
+		*/
+		zend_update_property(*ce, new_object, "load", 4, CII_G(loader_obj) TSRMLS_CC);
+		//
+		/*
+		*	add __get method
+		*/
+		if( !zend_hash_exists(&(*ce)->function_table, "__get", 6) ){
+			zend_function *func_pDest;
+			zend_function func;
+			func.internal_function.type = ZEND_INTERNAL_FUNCTION;
+			func.internal_function.function_name = "__get";
+			func.internal_function.scope = *ce;
+			func.internal_function.fn_flags = ZEND_ACC_PUBLIC;
+			func.internal_function.num_args = 0;
+			func.internal_function.required_num_args = 0;
+			func.internal_function.arg_info = (zend_arg_info*)cii_loader___get_arginfo+1;
+			func.internal_function.handler = ZEND_FN(cii_model___get);
+			if( zend_hash_add(&(*ce)->function_table, "__get", 6, &func, sizeof(zend_function), (void**)&func_pDest) == FAILURE ){
+				php_error(E_WARNING, "add __get method failed");
+			}else{
+				(*ce)->__get = func_pDest;
+				(*ce)->__get->common.fn_flags &= ~ZEND_ACC_ALLOW_STATIC;
+			}
+		}
+		/*
 		*	call new object construct function
 		*/
 		if (zend_hash_exists(&(*ce)->function_table, "__construct", 12)) {
@@ -362,12 +421,52 @@ PHP_METHOD(cii_loader, library){
 *
 * public function database()
 */
-PHP_METHOD(cii_loader, database){
+PHP_METHOD(cii_loader, database)
+{
+	zval *database_obj;
+	zval **hostname;
+	zval **username;
+	zval **password;
+	zval **database;
+	zval **params[4];
+
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "hostname", 9, (void**)&hostname) == FAILURE ||
+		Z_TYPE_PP(hostname) != IS_STRING || Z_STRLEN_PP(hostname) == 0 ){
+		php_error(E_ERROR, "Your database config 'hostname' does not appear to be formatted correctly.");
+	}
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "username", 9, (void**)&username) == FAILURE ||
+		Z_TYPE_PP(username) != IS_STRING || Z_STRLEN_PP(username) == 0 ){
+		php_error(E_ERROR, "Your database config 'username' does not appear to be formatted correctly.");
+	}
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "password", 9, (void**)&password) == FAILURE ){
+		php_error(E_ERROR, "Your database config 'password' does not appear to be formatted correctly.");
+	}
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "database", 9, (void**)&database) == FAILURE ||
+		Z_TYPE_PP(database) != IS_STRING || Z_STRLEN_PP(database) == 0 ){
+		php_error(E_ERROR, "Your database config 'database' does not appear to be formatted correctly.");
+	}
+
+	params[0] = hostname;
+	params[1] = username;
+	params[2] = password;
+	params[3] = database;
+
+	MAKE_STD_ZVAL(database_obj);
+	object_init_ex(database_obj, cii_database_ce);
+	if (zend_hash_exists(&cii_database_ce->function_table, "__construct", 12)) {
+		zval *cii_output_retval;
+		CII_CALL_USER_METHOD_EX(&database_obj, "__construct", &cii_output_retval, 4, params);
+		zval_ptr_dtor(&cii_output_retval);
+	}
+
+	zend_update_property(cii_loader_ce, getThis(), "db", 2, database_obj TSRMLS_CC);
 	
+	RETURN_TRUE;
 }
 
 zend_function_entry cii_loader_methods[] = {
 	PHP_ME(cii_loader, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(cii_loader, __get, cii_loader___get_arginfo, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, view, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, model, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, helper, NULL, ZEND_ACC_PUBLIC)
@@ -378,6 +477,7 @@ zend_function_entry cii_loader_methods[] = {
 
 PHP_MINIT_FUNCTION(cii_loader)
 {
+	ZEND_MINIT(cii_database)(INIT_FUNC_ARGS_PASSTHRU);
 	/**
 	 * Router Class
 	 *

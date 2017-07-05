@@ -44,8 +44,9 @@ extern zend_module_entry cii_module_entry;
 */
 
 ZEND_BEGIN_MODULE_GLOBALS(cii)
-    zval *configs;
     char *app_path;
+
+    zval *configs;
     zval *uri_obj;
     zval *router_obj;
     zval *loader_obj;

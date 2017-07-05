@@ -27,10 +27,13 @@
 #include "ext/standard/info.h"
 #include "php_cii.h"
 
+#include "../standard/php_string.h"
+
 #include "cii_uri.c"
 #include "cii_router.c"
 #include "cii_loader.c"
 #include "cii_output.c"
+// #include "cii_database.c"
 
 ZEND_DECLARE_MODULE_GLOBALS(cii)
 
@@ -237,6 +240,31 @@ PHP_FUNCTION(cii_run)
 			zend_hash_update(Z_ARRVAL_P(CII_G(configs)), key, key_len, value, sizeof(zval *), NULL);
 		}
 
+		// database
+		zval **db;
+
+		if( zend_hash_find(EG(active_symbol_table), "db", 3, (void**)&db) == FAILURE || Z_TYPE_PP(db) != IS_ARRAY ){
+			// php_error(E_ERROR, "Your config file does not appear to be formatted correctly.");	
+		}
+		/*
+		*	foreach config array that defined in file
+		*/
+		for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(*db), &pos);
+		    zend_hash_has_more_elements_ex(Z_ARRVAL_P(*db), &pos) == SUCCESS;
+		    zend_hash_move_forward_ex(Z_ARRVAL_P(*db), &pos)){
+			if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_P(*db), &key, &key_len, &idx, 0, &pos)) == HASH_KEY_NON_EXISTENT){
+				continue;
+			}
+			if(zend_hash_get_current_data_ex(Z_ARRVAL_P(*db), (void**)&value, &pos) == FAILURE){
+				continue;
+			}
+			/*
+			*	update CII_G(configs)
+			*/
+			Z_ADDREF_P(*value);
+			zend_hash_update(Z_ARRVAL_P(CII_G(configs)), key, key_len, value, sizeof(zval *), NULL);
+		}
+
 		CII_DESTROY_ACTIVE_SYMBOL_TABLE();
 
 		efree(file);
@@ -329,6 +357,7 @@ PHP_FUNCTION(cii_run)
 	*/
 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
 	//
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "config", 6, CII_G(configs) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
