@@ -49,6 +49,10 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
     zval *uri_obj;
     zval *router_obj;
     zval *loader_obj;
+    zval *output_obj;
+
+    zend_class_entry *controller_ce;
+    zval *controller_obj;
 ZEND_END_MODULE_GLOBALS(cii)
 
 #define CII_API ZEND_API

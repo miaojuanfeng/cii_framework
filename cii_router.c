@@ -14,70 +14,21 @@ zend_class_entry *cii_router_ce;
 PHP_METHOD(cii_router, __construct)
 {
 	/*
-	*	add cii_uri object into cii_router
+	*	get cii_uri::rsegments
 	*/
-	// zval *uri = cii_load_class("uri", 3, 0, NULL);
-	// zend_update_property(cii_router_ce, getThis(), ZEND_STRL("uri"), uri TSRMLS_CC);
-	/*
-	*	update cii_uri::rsegments
-	*/
-	zval *segments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("segments"), 1 TSRMLS_CC);
-	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
-	/*
-	*	copy cii_uri::segments to cii_uri::rsegments
-	*/
-	HashPosition pos;
-	char *key;
-	uint key_len;
-	ulong idx;
-	zval **value;
-	for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(segments), &pos);
-	    zend_hash_has_more_elements_ex(Z_ARRVAL_P(segments), &pos) == SUCCESS;
-	    zend_hash_move_forward_ex(Z_ARRVAL_P(segments), &pos)){
-
-		zend_hash_get_current_key_ex(Z_ARRVAL_P(segments), &key, &key_len, &idx, 0, &pos);
-		zend_hash_get_current_data_ex(Z_ARRVAL_P(segments), (void**)&value, &pos);
-
-		Z_ADDREF_PP(value);
-		zend_hash_index_update(Z_ARRVAL_P(rsegments), idx, value, sizeof(zval *), NULL);
-	}
-	/*
-	*	check whether cii_uri::rsegments[1] and cii_uri::rsegments[2] is empty
-	*	if empty set default value to them
-	*/
-	zval **class, **method;
-	zval *rsegments_class, *rsegments_method;
-	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&class) == FAILURE ||
-		(Z_TYPE_PP(class) == IS_STRING && Z_STRLEN_PP(class) == 0) ){
-		zval **default_controller;
-		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_controller", 19, (void**)&default_controller) == FAILURE ||
-			Z_TYPE_PP(default_controller) != IS_STRING || Z_STRLEN_PP(default_controller) == 0 ){
-			php_error(E_ERROR, "Your config item 'default_controller' does not appear to be formatted correctly.");
-		}
-		rsegments_class = *default_controller;
-		zend_hash_index_update(Z_ARRVAL_P(rsegments), 1, &rsegments_class, sizeof(zval *), NULL);
-	}else{
-		rsegments_class = *class;
-	}
-	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&method) == FAILURE ||
-		(Z_TYPE_PP(method) == IS_STRING && Z_STRLEN_PP(method) == 0) ){
-		zval **default_method;
-		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_method", 15, (void**)&default_method) == FAILURE ||
-			Z_TYPE_PP(default_method) != IS_STRING || Z_STRLEN_PP(default_method) == 0 ){
-			php_error(E_ERROR, "Your config item 'default_method' does not appear to be formatted correctly.");
-		}
-		rsegments_method = *default_method;
-		zend_hash_index_update(Z_ARRVAL_P(rsegments), 2, &rsegments_method, sizeof(zval *), NULL);
-	}else{
-		rsegments_method = *method;
-	}
+	// zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 	/*
 	*	update cii_router::class and update cii_router::method
 	*/
-	Z_ADDREF_P(rsegments_class);
-	zend_update_property(cii_router_ce, getThis(), ZEND_STRL("class"), rsegments_class TSRMLS_CC);
-	Z_ADDREF_P(rsegments_method);
-	zend_update_property(cii_router_ce, getThis(), ZEND_STRL("method"), rsegments_method TSRMLS_CC);
+	// zval **class, **method;
+ //    if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&class) != FAILURE ){
+ //    	Z_ADDREF_PP(class);
+	// 	//zend_update_property(cii_router_ce, getThis(), ZEND_STRL("class"), *class TSRMLS_CC);
+	// }
+	// if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&method) != FAILURE ){
+	// 	Z_ADDREF_PP(method);
+	// 	//zend_update_property(cii_router_ce, getThis(), ZEND_STRL("method"), *method TSRMLS_CC);
+	// }
 	/*
 	*	output log
 	*/

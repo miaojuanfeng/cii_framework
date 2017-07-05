@@ -30,6 +30,7 @@
 #include "cii_uri.c"
 #include "cii_router.c"
 #include "cii_loader.c"
+#include "cii_output.c"
 
 ZEND_DECLARE_MODULE_GLOBALS(cii)
 
@@ -243,16 +244,6 @@ PHP_FUNCTION(cii_run)
 		php_error(E_ERROR, "Your config parameter does not appear to be formatted correctly.");
 	}
 	/*
-	* load CII_Loader object -- this object should be first one, or will get segment fault
-	*/
-	MAKE_STD_ZVAL(CII_G(loader_obj));
-	object_init_ex(CII_G(loader_obj), cii_loader_ce);
-	if (zend_hash_exists(&cii_loader_ce->function_table, "__construct", 12)) {
-		zval *cii_loader_retval;
-		CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "__construct", &cii_loader_retval, 0, NULL);
-		zval_ptr_dtor(&cii_loader_retval);
-	}
-	/*
 	* load CII_URI object
 	*/
 	MAKE_STD_ZVAL(CII_G(uri_obj));
@@ -263,92 +254,103 @@ PHP_FUNCTION(cii_run)
 		zval_ptr_dtor(&cii_uri_retval);
 	}
 	/*
-	* load CII_Router object
+	* load CII_Router object - 一调用__construct就会挂 - Bug
 	*/
 	MAKE_STD_ZVAL(CII_G(router_obj));
 	object_init_ex(CII_G(router_obj), cii_router_ce);
 	if (zend_hash_exists(&cii_router_ce->function_table, "__construct", 12)) {
-		zval *cii_router_retval;
-		CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
-		zval_ptr_dtor(&cii_router_retval);
+		// zval *cii_router_retval;
+		// CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
+		// zval_ptr_dtor(&cii_router_retval);
 	}
-	RETURN_ZVAL(CII_G(loader_obj), 1, 0);
-	// /*
-	// * load CII_Output object
-	// */
-	// // zval *output_obj;
-	// MAKE_STD_ZVAL(output_obj);
-	// object_init_ex(output_obj, cii_output_ce);
-	// if (zend_hash_exists(&cii_output_ce->function_table, "__construct", 12)) {
-	// 	zval *cii_output_retval;
-	// 	CII_CALL_USER_METHOD_EX(&output_obj, "__construct", &cii_output_retval, 0, NULL);
-	// 	zval_ptr_dtor(&cii_output_retval);
-	// }
-
-	// zval *rsegments = zend_read_property(cii_uri_ce, uri_obj, ZEND_STRL("rsegments"), 1 TSRMLS_CC);
-
-	// zval **run_controller;
-	// if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), 1) || zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&run_controller) == FAILURE ){
-	// 	php_error(E_ERROR, "Controller is empty");
-	// }
-	// zval **run_method;
-	// if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), 2) || zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&run_method) == FAILURE ){
-	// 	php_error(E_ERROR, "Method is empty");
-	// }
-
-	// zval **controllers_path;
-	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
-	// 	Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
-	// 	php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
-	// }
-
-	// char *file;
-	// uint file_len;
-	// file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(run_controller));
-
-	// if (!zend_hash_exists(&EG(included_files), file, file_len + 1)){
-	// 	CII_ALLOC_ACTIVE_SYMBOL_TABLE();
-	// 	cii_loader_import(file, file_len, 0 TSRMLS_CC);
-	// 	CII_DESTROY_ACTIVE_SYMBOL_TABLE();
-	// }
-	// efree(file);
-
-	// zend_class_entry **run_class_ce;
-	// if( zend_hash_find(EG(class_table), Z_STRVAL_PP(run_controller), Z_STRLEN_PP(run_controller)+1, (void**)&run_class_ce) == FAILURE ){
-	// 	php_error(E_ERROR, "controller does not exist: %s\n", Z_STRVAL_PP(run_controller));
-	// }
-	// controller_ce = *run_class_ce;
-
-	// if ( !zend_hash_exists(&(*run_class_ce)->function_table, Z_STRVAL_PP(run_method), Z_STRLEN_PP(run_method)+1) ){
-	// 	php_error(E_ERROR, "method does not exist: %s\n", Z_STRVAL_PP(run_method));
-	// }
-
-	// // zval *controller_obj;
-	// MAKE_STD_ZVAL(controller_obj);
-	// object_init_ex(controller_obj, *run_class_ce);
-	// zend_update_property(*run_class_ce, controller_obj, "uri", 3, uri_obj TSRMLS_CC);
-	// zend_update_property(*run_class_ce, controller_obj, "router", 6, CII_G(router_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, controller_obj, "load", 4, CII_G(loader_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, controller_obj, "output", 6, output_obj TSRMLS_CC);
-
-	// if ( zend_hash_exists(&(*run_class_ce)->function_table, "__construct", 12) ){
-	// 	zval *run_class_retval;
-	// 	CII_CALL_USER_METHOD_EX(&controller_obj, "__construct", &run_class_retval, 0, NULL);
-	// 	zval_ptr_dtor(&run_class_retval);
-	// }
-
-	// zval *run_method_retval;
-	// CII_CALL_USER_METHOD_EX(&controller_obj, Z_STRVAL_PP(run_method), &run_method_retval, 0, NULL);
-	// zval_ptr_dtor(&run_method_retval);
+	/*
+	* load CII_Loader object -- this object should be first one, or will get segment fault
+	*/
+	MAKE_STD_ZVAL(CII_G(loader_obj));
+	object_init_ex(CII_G(loader_obj), cii_loader_ce);
+	if (zend_hash_exists(&cii_loader_ce->function_table, "__construct", 12)) {
+		zval *cii_loader_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "__construct", &cii_loader_retval, 0, NULL);
+		zval_ptr_dtor(&cii_loader_retval);
+	}
+	/*
+	* load CII_Output object -- this object should be first one, or will get segment fault
+	*/
+	MAKE_STD_ZVAL(CII_G(output_obj));
+	object_init_ex(CII_G(output_obj), cii_output_ce);
+	if (zend_hash_exists(&cii_output_ce->function_table, "__construct", 12)) {
+		zval *cii_output_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(output_obj), "__construct", &cii_output_retval, 0, NULL);
+		zval_ptr_dtor(&cii_output_retval);
+	}
 	
+	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+
+	zval **run_controller;
+	if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), 1) || zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&run_controller) == FAILURE ){
+		php_error(E_ERROR, "Controller is empty");
+	}
+	zval **run_method;
+	if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), 2) || zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&run_method) == FAILURE ){
+		php_error(E_ERROR, "Method is empty");
+	}
+
+	zval **controllers_path;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
+		Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
+		php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
+	}
+
+	char *file;
+	uint file_len;
+	file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(run_controller));
+
+	if (!zend_hash_exists(&EG(included_files), file, file_len + 1)){
+		CII_ALLOC_ACTIVE_SYMBOL_TABLE();
+		cii_loader_import(file, file_len, 0 TSRMLS_CC);
+		CII_DESTROY_ACTIVE_SYMBOL_TABLE();
+	}
+	efree(file);
+
+	zend_class_entry **run_class_ce;
+	if( zend_hash_find(EG(class_table), Z_STRVAL_PP(run_controller), Z_STRLEN_PP(run_controller)+1, (void**)&run_class_ce) == FAILURE ){
+		php_error(E_ERROR, "controller does not exist: %s\n", Z_STRVAL_PP(run_controller));
+	}
+	CII_G(controller_ce) = *run_class_ce;
+
+	if ( !zend_hash_exists(&(*run_class_ce)->function_table, Z_STRVAL_PP(run_method), Z_STRLEN_PP(run_method)+1) ){
+		php_error(E_ERROR, "method does not exist: %s\n", Z_STRVAL_PP(run_method));
+	}
+
+	MAKE_STD_ZVAL(CII_G(controller_obj));
+	object_init_ex(CII_G(controller_obj), *run_class_ce);
+	/*
+	*	add loader object to CII_Loader::load
+	*/
+	zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
+	//
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
+
+	if ( zend_hash_exists(&(*run_class_ce)->function_table, "__construct", 12) ){
+		zval *run_class_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), "__construct", &run_class_retval, 0, NULL);
+		zval_ptr_dtor(&run_class_retval);
+	}
+
+	zval *run_method_retval;
+	CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), Z_STRVAL_PP(run_method), &run_method_retval, 0, NULL);
+	zval_ptr_dtor(&run_method_retval);
 
 	// efree(CII_G(app_path));
 	// zval_ptr_dtor(&configs);
 	// zval_ptr_dtor(&uri_obj);
 	// zval_ptr_dtor(&CII_G(router_obj));
 	// zval_ptr_dtor(&CII_G(loader_obj));
-	// zval_ptr_dtor(&output_obj);
-	// RETURN_ZVAL(controller_obj, 0, 1);
+	// zval_ptr_dtor(&CII_G(output_obj));
+	RETURN_ZVAL(CII_G(controller_obj), 0, 1);
 }
 /* }}} */
 /* The previous line is meant for vim and emacs, so it can correctly fold and 
@@ -371,7 +373,7 @@ static void php_cii_init_globals(zend_cii_globals *cii_globals)
 static void php_cii_globals_ctor(zend_cii_globals *cii_globals)
 {
 	// cii_globals->controller_ce = NULL;
-	// cii_globals->controller_obj = NULL;
+	// cii_globals->CII_G(controller_obj) = NULL;
 	// /*
 	// *	init CII_G(CII_G(app_path))
 	// */
@@ -386,7 +388,7 @@ static void php_cii_globals_ctor(zend_cii_globals *cii_globals)
 static void php_cii_globals_dtor(zend_cii_globals *cii_globals)
 {
 	// 现在变成自动释放？
-	// if( cii_globals->cii_controller_obj ) zval_ptr_dtor(&cii_globals->cii_controller_obj);
+	// if( cii_globals->cii_CII_G(controller_obj) ) zval_ptr_dtor(&cii_globals->cii_CII_G(controller_obj));
 	// if( cii_globals->CII_G(app_path) ) efree(cii_globals->CII_G(app_path));
 	if( cii_globals->configs ) zval_ptr_dtor(&cii_globals->configs);
 
@@ -395,7 +397,7 @@ static void php_cii_globals_dtor(zend_cii_globals *cii_globals)
 	// zval_ptr_dtor(&uri_obj);
 	// zval_ptr_dtor(&CII_G(router_obj));
 	// zval_ptr_dtor(&CII_G(loader_obj));
-	// zval_ptr_dtor(&output_obj);
+	// zval_ptr_dtor(&CII_G(output_obj));
 }
 /* {{{ PHP_MINIT_FUNCTION
  */
@@ -406,6 +408,7 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_uri)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_router)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_loader)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
 	//
 	return SUCCESS;
 }

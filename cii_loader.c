@@ -52,16 +52,15 @@ PHP_METHOD(cii_loader, view){
 		RETURN_ZVAL(getThis(), 1, 0);
 	}
 
-	file_len = spprintf(&file, 0, "%s", view);
 	// if( !CII_G(apppath) ){
 	// 	cii_get_apppath();
 	// }
-	// zval **views_path;
-	// if( zend_hash_find(Z_ARRVAL_P(configs), "views_path", 11, (void**)&views_path) == FAILURE ||
-	// 	Z_TYPE_PP(views_path) != IS_STRING || Z_STRLEN_PP(views_path) == 0 ){
-	// 	php_error(E_ERROR, "Your config 'views_path' does not appear to be formatted correctly.");
-	// }
-	// file_len = spprintf(&file, 0, "%s%s%s%s%s%s", app_path, "/", Z_STRVAL_PP(views_path), "/", view, ".php");
+	zval **views_path;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "views_path", 11, (void**)&views_path) == FAILURE ||
+		Z_TYPE_PP(views_path) != IS_STRING || Z_STRLEN_PP(views_path) == 0 ){
+		php_error(E_ERROR, "Your config 'views_path' does not appear to be formatted correctly.");
+	}
+	file_len = spprintf(&file, 0, "%s%s%s%s%s%s", CII_G(app_path), "/", Z_STRVAL_PP(views_path), "/", view, ".php");
 
 	if(zend_hash_exists(&EG(included_files), file, file_len + 1)){
 		efree(file);
@@ -358,12 +357,22 @@ PHP_METHOD(cii_loader, library){
 	}
 }
 
+/**
+* Library Loader
+*
+* public function database()
+*/
+PHP_METHOD(cii_loader, database){
+	
+}
+
 zend_function_entry cii_loader_methods[] = {
 	PHP_ME(cii_loader, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(cii_loader, view, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, model, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, helper, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, library, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_loader, database, NULL, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 

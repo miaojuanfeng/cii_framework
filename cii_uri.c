@@ -38,10 +38,10 @@ PHP_METHOD(cii_uri, __construct)
 	}
 	server = PG(http_globals)[TRACK_VARS_SERVER];
 
-zval *test;
-MAKE_STD_ZVAL(test);
-ZVAL_STRING(test, "main/home", 1);
-zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, sizeof(zval *), NULL);
+// zval *test;
+// MAKE_STD_ZVAL(test);
+// ZVAL_STRING(test, "main/home", 1);
+// zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, sizeof(zval *), NULL);
 
     if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), (void**)&query) && Z_TYPE_PP(query) == IS_STRING ){
 
@@ -79,13 +79,13 @@ zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, si
 	    	array_init(uri_arr);
 	    	php_explode(&zdelim, &zstr, uri_arr, LONG_MAX);
 	    	/*
-			*	update cii_uri::segments and cii_uri::rsegments
+			*	update cii_uri::segments
 			*/
 	    	uint i = 1;
 	    	HashPosition pos;
 	    	zval **value;
-	    	zval *segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
-	    	zval *rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+	    	// zval *segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
+	    	// zval *rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 	    	for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(uri_arr), &pos);
 			    zend_hash_has_more_elements_ex(Z_ARRVAL_P(uri_arr), &pos) == SUCCESS;
 			    zend_hash_move_forward_ex(Z_ARRVAL_P(uri_arr), &pos)){
@@ -94,6 +94,8 @@ zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, si
 					}
 					Z_ADDREF_PP(value);
 		    		zend_hash_index_update(Z_ARRVAL_P(segments),  i, value, sizeof(zval *), NULL);
+		    		Z_ADDREF_PP(value);
+		    		zend_hash_index_update(Z_ARRVAL_P(rsegments),  i, value, sizeof(zval *), NULL);
 		    		i++;
 	    	}
 	    	zval_dtor(&zdelim);
@@ -102,6 +104,30 @@ zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, si
 		zval_dtor(&zstr);
 		zval_ptr_dtor(query);
     }
+    /*
+	*	update cii_uri::rsegments
+	*/
+    zval **class, **method;
+    if( zend_hash_index_find(Z_ARRVAL_P(segments), 1, (void**)&class) == FAILURE ||
+		(Z_TYPE_PP(class) == IS_STRING && Z_STRLEN_PP(class) == 0) ){
+		zval **default_controller;
+		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_controller", 19, (void**)&default_controller) == FAILURE ||
+			Z_TYPE_PP(default_controller) != IS_STRING || Z_STRLEN_PP(default_controller) == 0 ){
+			php_error(E_ERROR, "Your config item 'default_controller' does not appear to be formatted correctly.");
+		}
+		Z_ADDREF_PP(default_controller);
+		zend_hash_index_update(Z_ARRVAL_P(rsegments), 1, default_controller, sizeof(zval *), NULL);
+	}
+	if( zend_hash_index_find(Z_ARRVAL_P(segments), 2, (void**)&method) == FAILURE ||
+		(Z_TYPE_PP(method) == IS_STRING && Z_STRLEN_PP(method) == 0) ){
+		zval **default_method;
+		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_method", 15, (void**)&default_method) == FAILURE ||
+			Z_TYPE_PP(default_method) != IS_STRING || Z_STRLEN_PP(default_method) == 0 ){
+			php_error(E_ERROR, "Your config item 'default_method' does not appear to be formatted correctly.");
+		}
+		Z_ADDREF_PP(default_method);
+		zend_hash_index_update(Z_ARRVAL_P(rsegments), 2, default_method, sizeof(zval *), NULL);
+	}
 }
 /**
 * Fetch URI Segment
