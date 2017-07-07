@@ -213,6 +213,9 @@ PHP_METHOD(cii_loader, model){
 			CII_CALL_USER_METHOD_EX(&new_object, "__construct", &retval, 0, NULL);
 			zval_ptr_dtor(&retval);
 		}
+		//
+		zend_update_property(CII_G(controller_ce), CII_G(controller_obj), name_lower, name_len, new_object TSRMLS_CC);
+		//
 		efree(name_lower);
 		RETURN_ZVAL(new_object, 1, 1);
 	}else{
