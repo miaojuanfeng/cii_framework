@@ -353,6 +353,11 @@ PHP_FUNCTION(cii_run)
 	MAKE_STD_ZVAL(CII_G(controller_obj));
 	object_init_ex(CII_G(controller_obj), *run_class_ce);
 	/*
+	*	save for $this->db->...
+	*/
+	CII_G(instance_ce)  = *run_class_ce;
+	CII_G(instance_obj) = CII_G(controller_obj);
+	/*
 	*	add loader object to CII_Loader::load
 	*/
 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);

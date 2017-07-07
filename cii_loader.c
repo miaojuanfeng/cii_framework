@@ -3,38 +3,6 @@
 
 zend_class_entry *cii_loader_ce;
 
-ZEND_BEGIN_ARG_INFO_EX(cii_loader___get_arginfo, 0, 0, 1)
-	ZEND_ARG_INFO(0, key)
-ZEND_END_ARG_INFO()
-
-/*
-*	function cii___get()
-*/
-ZEND_API void cii___get(INTERNAL_FUNCTION_PARAMETERS)
-{
-	char *key;
-	uint key_len;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
-		WRONG_PARAM_COUNT;
-	}
-	zval *value = zend_read_property(cii_loader_ce, CII_G(loader_obj), key, key_len, 1 TSRMLS_CC);
-	RETURN_ZVAL(value, 1, 0);
-}
-/*
-*	function __get(string key)
-*/
-PHP_FUNCTION(cii_model___get)
-{
-	cii___get(INTERNAL_FUNCTION_PARAM_PASSTHRU);
-}
-/*  
-*	cii_loader::__get()
-*/
-//PHP_ME_MAPPING( cii_loader, __get, NULL)
-PHP_METHOD(cii_loader, __get)
-{
-	cii___get(INTERNAL_FUNCTION_PARAM_PASSTHRU);
-}
 /**
 * Class constructor
 *
@@ -229,31 +197,14 @@ PHP_METHOD(cii_loader, model){
 		MAKE_STD_ZVAL(new_object);
 		object_init_ex(new_object, *ce);
 		/*
+		*	save for $this->db->...
+		*/
+		CII_G(instance_ce)  = *ce;
+		CII_G(instance_obj) = new_object;
+		/*
 		*
 		*/
 		zend_update_property(*ce, new_object, "load", 4, CII_G(loader_obj) TSRMLS_CC);
-		//
-		/*
-		*	add __get method
-		*/
-		if( !zend_hash_exists(&(*ce)->function_table, "__get", 6) ){
-			zend_function *func_pDest;
-			zend_function func;
-			func.internal_function.type = ZEND_INTERNAL_FUNCTION;
-			func.internal_function.function_name = "__get";
-			func.internal_function.scope = *ce;
-			func.internal_function.fn_flags = ZEND_ACC_PUBLIC;
-			func.internal_function.num_args = 0;
-			func.internal_function.required_num_args = 0;
-			func.internal_function.arg_info = (zend_arg_info*)cii_loader___get_arginfo+1;
-			func.internal_function.handler = ZEND_FN(cii_model___get);
-			if( zend_hash_add(&(*ce)->function_table, "__get", 6, &func, sizeof(zend_function), (void**)&func_pDest) == FAILURE ){
-				php_error(E_WARNING, "add __get method failed");
-			}else{
-				(*ce)->__get = func_pDest;
-				(*ce)->__get->common.fn_flags &= ~ZEND_ACC_ALLOW_STATIC;
-			}
-		}
 		/*
 		*	call new object construct function
 		*/
@@ -458,15 +409,22 @@ PHP_METHOD(cii_loader, database)
 		CII_CALL_USER_METHOD_EX(&database_obj, "__construct", &cii_output_retval, 4, params);
 		zval_ptr_dtor(&cii_output_retval);
 	}
-
+	/*
+	*	do for $this->db->...
+	*/
 	zend_update_property(cii_loader_ce, getThis(), "db", 2, database_obj TSRMLS_CC);
+	/*
+	*	do for $this->db->...
+	*/
+	if( CII_G(instance_obj) && CII_G(instance_ce) ){
+		zend_update_property(CII_G(instance_ce), CII_G(instance_obj), "db", 2, database_obj TSRMLS_CC);
+	}
 	
 	RETURN_TRUE;
 }
 
 zend_function_entry cii_loader_methods[] = {
 	PHP_ME(cii_loader, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-	PHP_ME(cii_loader, __get, cii_loader___get_arginfo, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, view, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, model, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, helper, NULL, ZEND_ACC_PUBLIC)

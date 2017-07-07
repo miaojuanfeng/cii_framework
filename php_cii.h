@@ -54,6 +54,9 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
 
     zend_class_entry *controller_ce;
     zval *controller_obj;
+
+    zend_class_entry *instance_ce;
+    zval *instance_obj;
 ZEND_END_MODULE_GLOBALS(cii)
 
 #define CII_API ZEND_API
