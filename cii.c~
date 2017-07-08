@@ -380,8 +380,8 @@ PHP_FUNCTION(cii_run)
 
 	efree(CII_G(app_path));
 	zval_ptr_dtor(&CII_G(configs));
-	zval_ptr_dtor(&CII_G(uri_obj));
-	zval_ptr_dtor(&CII_G(router_obj));
+	// zval_ptr_dtor(&uri_obj);
+	// zval_ptr_dtor(&CII_G(router_obj));
 	// zval_ptr_dtor(&CII_G(loader_obj));
 	zval_ptr_dtor(&CII_G(output_obj));
 	RETURN_ZVAL(CII_G(controller_obj), 0, 1);
