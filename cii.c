@@ -33,7 +33,8 @@
 #include "cii_router.c"
 #include "cii_loader.c"
 #include "cii_output.c"
-// #include "cii_database.c"
+// #include "cii_database.c" // not load cii_database here, load it in cii_loader
+#include "cii_input.c"
 
 ZEND_DECLARE_MODULE_GLOBALS(cii)
 
@@ -311,6 +312,16 @@ PHP_FUNCTION(cii_run)
 		CII_CALL_USER_METHOD_EX(&CII_G(output_obj), "__construct", &cii_output_retval, 0, NULL);
 		zval_ptr_dtor(&cii_output_retval);
 	}
+	/*
+	* load CII_Input object -- this object should be first one, or will get segment fault
+	*/
+	MAKE_STD_ZVAL(CII_G(input_obj));
+	object_init_ex(CII_G(input_obj), cii_input_ce);
+	if (zend_hash_exists(&cii_input_ce->function_table, "__construct", 12)) {
+		zval *cii_input_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(input_obj), "__construct", &cii_input_retval, 0, NULL);
+		zval_ptr_dtor(&cii_input_retval);
+	}
 	
 	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 
@@ -367,6 +378,7 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
 
 	if ( zend_hash_exists(&(*run_class_ce)->function_table, "__construct", 12) ){
 		zval *run_class_retval;
@@ -384,6 +396,7 @@ PHP_FUNCTION(cii_run)
 	zval_ptr_dtor(&CII_G(router_obj));
 	// zval_ptr_dtor(&CII_G(loader_obj));
 	zval_ptr_dtor(&CII_G(output_obj));
+	zval_ptr_dtor(&CII_G(input_obj));
 	RETURN_ZVAL(CII_G(controller_obj), 0, 1);
 }
 /* }}} */
@@ -443,6 +456,7 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_router)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_loader)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_input)(INIT_FUNC_ARGS_PASSTHRU);
 	//
 	return SUCCESS;
 }

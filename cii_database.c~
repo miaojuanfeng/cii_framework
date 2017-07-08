@@ -152,7 +152,7 @@ PHP_METHOD(cii_database, affected_rows)
 }
 
 /****************************************************************/
-PHP_METHOD(cii_db_result, __construct)
+PHP_METHOD(CII_DB_result, __construct)
 {
 	zval *result_array;
 	zval *row_array;

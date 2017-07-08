@@ -4,11 +4,12 @@ class News {
 
 	public function __construct()
 	{
-		$this->news_model = $this->load->model('News_model');
+		$this->news_model = $this->load->model('news_model');
 	}
 
 	public function index()
 	{
+var_dump($this);
 		$this->news_model->select();
 		$this->load->view('news_view');
 	}
