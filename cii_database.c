@@ -35,6 +35,8 @@ PHP_METHOD(cii_database, __construct)
 	zval *func_name;
 	zval *retval;
 
+	zval *select;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zzzz", &hostname, &username, &password, &database) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
@@ -84,6 +86,11 @@ PHP_METHOD(cii_database, __construct)
 	
 	zend_update_property(cii_database_ce, getThis(), "conn_id", 7, db_obj TSRMLS_CC);
 	zval_ptr_dtor(&db_obj);
+
+	MAKE_STD_ZVAL(select);
+	ZVAL_STRING(select, "SELECT *", 1);
+	zend_update_property(cii_database_ce, getThis(), "select", 6, select TSRMLS_CC);
+	zval_ptr_dtor(&select);
 }
 
 
@@ -151,6 +158,145 @@ PHP_METHOD(cii_database, affected_rows)
 	RETURN_ZVAL(affected_rows, 1, 0);
 }
 
+PHP_METHOD(cii_database, select)
+{
+	// zval *where;
+	// char *key;
+	// uint key_len;
+	// char *value;
+	// uint value_len;
+
+	// if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &key, &key_len, &value, &value_len) == FAILURE) {
+	// 	WRONG_PARAM_COUNT;
+	// }
+
+	// where = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("where"), 1 TSRMLS_CC);
+
+	// if( Z_TYPE_P(where) == IS_STRING ){
+	// 	char *query;
+	// 	spprintf(&query, 0, " %s AND %s = '%s'", Z_STRVAL_P(where), key, value);
+	// 	zval_dtor(where);
+	// 	ZVAL_STRING(where, query, 0);
+	// }else{
+	// 	RETURN_FALSE;
+	// }
+	// RETURN_TRUE;
+}
+
+PHP_METHOD(cii_database, from)
+{
+	zval *from;
+	char *table;
+	uint table_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &table, &table_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	from = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("from"), 1 TSRMLS_CC);
+
+	if( Z_TYPE_P(from) == IS_NULL ){
+		char *query;
+		spprintf(&query, 0, " FROM %s", table);
+		MAKE_STD_ZVAL(from);
+		ZVAL_STRING(from, query, 0);
+		zend_update_property(cii_database_ce, getThis(), "from", 4, from TSRMLS_CC);
+	}else if( Z_TYPE_P(from) == IS_STRING ){
+		char *query;
+		spprintf(&query, 0, " FROM %s", table);
+		zval_dtor(from);
+		ZVAL_STRING(from, query, 0);
+	}else{
+		RETURN_FALSE;
+	}
+	RETURN_TRUE;
+}
+
+PHP_METHOD(cii_database, where)
+{
+	zval *where;
+	char *key;
+	uint key_len;
+	char *value;
+	uint value_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &key, &key_len, &value, &value_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	where = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("where"), 1 TSRMLS_CC);
+
+	if( Z_TYPE_P(where) == IS_NULL ){
+		char *query;
+		spprintf(&query, 0, " WHERE %s = '%s'", key, value);
+		MAKE_STD_ZVAL(where);
+		ZVAL_STRING(where, query, 0);
+		zend_update_property(cii_database_ce, getThis(), "where", 5, where TSRMLS_CC);
+	}else if( Z_TYPE_P(where) == IS_STRING ){
+		char *query;
+		spprintf(&query, 0, " %s AND %s = '%s'", Z_STRVAL_P(where), key, value);
+		zval_dtor(where);
+		ZVAL_STRING(where, query, 0);
+	}else{
+		RETURN_FALSE;
+	}
+	RETURN_TRUE;
+}
+
+PHP_METHOD(cii_database, get)
+{
+	zval *select;
+	zval *from;
+	zval *where;
+	char *query;
+	uint query_len;
+	zval *last_query;
+	
+	select = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("select"), 1 TSRMLS_CC);
+	from = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("from"), 1 TSRMLS_CC);
+	where = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("where"), 1 TSRMLS_CC);
+
+	if( Z_TYPE_P(select) == IS_STRING ){
+		query_len = spprintf(&query, 0, "%s", Z_STRVAL_P(select));
+	}
+	if( Z_TYPE_P(from) == IS_STRING ){
+		efree(query);
+		query_len = spprintf(&query, 0, "%s%s", Z_STRVAL_P(select), Z_STRVAL_P(from));
+	}
+	if( Z_TYPE_P(where) == IS_STRING ){
+		efree(query);
+		query_len = spprintf(&query, 0, "%s%s%s", Z_STRVAL_P(select), Z_STRVAL_P(from), Z_STRVAL_P(where));
+	}
+	//
+	MAKE_STD_ZVAL(last_query);
+	ZVAL_STRING(last_query, query, 1);
+	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
+	zval_ptr_dtor(&last_query);
+	//
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
+
+	MAKE_STD_ZVAL(query_query);
+	ZVAL_STRING(query_query, query, 1);
+
+	query_param[0] = &query_query;
+
+	MAKE_STD_ZVAL(func_name);
+	ZVAL_STRING(func_name, "query", 1);
+	if( call_user_function_ex(NULL, &getThis(), func_name, &retval, 1, query_param, 0, NULL TSRMLS_CC) == FAILURE ){
+		php_error(E_ERROR, "Call CII_Database::query function failed");
+	}
+	zval_ptr_dtor(&func_name);
+	//
+	RETURN_ZVAL(retval, 1, 1);
+}
+
+PHP_METHOD(cii_database, last_query)
+{
+	RETURN_ZVAL(zend_read_property(cii_database_ce, getThis(), ZEND_STRL("last_query"), 1 TSRMLS_CC), 1, 0);
+}
 /****************************************************************/
 PHP_METHOD(cii_db_result, __construct)
 {
@@ -166,6 +312,45 @@ PHP_METHOD(cii_db_result, __construct)
 	array_init(row_array);
 	zend_update_property(cii_db_result_ce, getThis(), "row_array", 9, row_array TSRMLS_CC);
 	zval_ptr_dtor(&row_array);
+}
+
+PHP_METHOD(cii_db_result, result)
+{
+	zval *result_array;
+	zval *func_name;
+	zval *retval;
+	zval **result_type[1];
+	zval *mysql_assoc;
+
+	result_array = zend_read_property(cii_db_result_ce, getThis(), ZEND_STRL("result_array"), 1 TSRMLS_CC);
+
+	if( !Z_ARRVAL_P(result_array)->nNumOfElements ){
+		zval *result_id;
+		zend_class_entry **mysqli_result_ce;
+		zval *result_num_rows;
+		result_id = zend_read_property(cii_db_result_ce, getThis(), ZEND_STRL("result_id"), 1 TSRMLS_CC);
+		
+		if( Z_TYPE_P(result_id) != IS_BOOL ){
+			MAKE_STD_ZVAL(mysql_assoc);
+			ZVAL_LONG(mysql_assoc, 2);
+
+			result_type[0] = &mysql_assoc;
+
+			MAKE_STD_ZVAL(func_name);
+			ZVAL_STRING(func_name, "fetch_all", 1);
+			if( call_user_function_ex(NULL, &result_id, func_name, &retval, 1, result_type, 0, NULL TSRMLS_CC) == FAILURE ){
+				php_error(E_ERROR, "Call Mysqli::result_array function failed");
+			}
+			zval_ptr_dtor(&func_name);
+			zval_ptr_dtor(&mysql_assoc);
+
+			zend_update_property(cii_db_result_ce, getThis(), "result_array", 12, retval TSRMLS_CC);
+			RETURN_ZVAL(retval, 1, 1);
+		}else{
+			RETURN_ZVAL(result_array, 1, 0);
+		}
+	}
+	RETURN_ZVAL(result_array, 1, 0);
 }
 
 PHP_METHOD(cii_db_result, result_array)
@@ -287,11 +472,18 @@ PHP_MINIT_FUNCTION(cii_database)
 		PHP_ME(cii_database, __construct,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 		PHP_ME(cii_database, query,   NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, affected_rows, NULL, ZEND_ACC_PUBLIC)
+		//
+		PHP_ME(cii_database, select, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, from, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, where, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, get, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, last_query, NULL, ZEND_ACC_PUBLIC)
 		PHP_FE_END
 	};
 
 	zend_function_entry cii_db_result_methods[] = {
 		PHP_ME(cii_db_result, __construct,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+		PHP_ME(cii_db_result, result, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_db_result, result_array, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_db_result, row_array, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_db_result, num_rows, NULL, ZEND_ACC_PUBLIC)
@@ -346,7 +538,30 @@ PHP_MINIT_FUNCTION(cii_database)
 	 * @var	long
 	 */
 	zend_declare_property_long(cii_database_ce, ZEND_STRL("affected_rows"), 0, ZEND_ACC_PUBLIC TSRMLS_CC);
-	///////////////
+	/**
+	 * CII_Database::select
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("select"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * CII_Database::from
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("from"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * CII_Database::where
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("where"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * CII_Database::last_query
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("last_query"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	///////////////
 	///////////////
 	///////////////
