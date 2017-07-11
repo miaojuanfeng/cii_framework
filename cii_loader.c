@@ -143,8 +143,8 @@ PHP_METHOD(cii_loader, view){
 PHP_METHOD(cii_loader, model){
 	char *model;
 	uint model_len;
-	char *name;
-	uint name_len;
+	char *name = NULL;
+	uint name_len = 0;
 	char *file;
 	uint file_len;
 
@@ -172,6 +172,7 @@ PHP_METHOD(cii_loader, model){
 		php_error(E_ERROR, "Your config 'models_path' does not appear to be formatted correctly.");
 	}
 	file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(models_path), model);
+
 	/*
 	*	is already included
 	*/
@@ -196,7 +197,11 @@ PHP_METHOD(cii_loader, model){
 	* add new object property to cii_controller class
 	*/
 	name_lower = zend_str_tolower_dup(model, model_len);
-	if( zend_hash_find(CG(class_table), name_lower, model_len+1, (void**)&ce) == SUCCESS ){
+	if( !name || !name_len ){
+		name = name_lower;
+		name_len = model_len;
+	}
+	if( zend_hash_find(CG(class_table), name, name_len+1, (void**)&ce) == SUCCESS ){
 		/*
 		*	new ce object
 		*/
@@ -220,7 +225,7 @@ PHP_METHOD(cii_loader, model){
 			zval_ptr_dtor(&retval);
 		}
 		//
-		zend_update_property(CII_G(controller_ce), CII_G(controller_obj), name_lower, model_len, new_object TSRMLS_CC);
+		zend_update_property(CII_G(controller_ce), CII_G(controller_obj), name, name_len, new_object TSRMLS_CC);
 		//
 		efree(name_lower);
 		RETURN_ZVAL(new_object, 1, 1);

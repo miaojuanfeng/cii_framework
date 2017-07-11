@@ -379,7 +379,7 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
-
+	//
 	if ( zend_hash_exists(&(*run_class_ce)->function_table, "__construct", 12) ){
 		zval *run_class_retval;
 		CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), "__construct", &run_class_retval, 0, NULL);
@@ -405,7 +405,49 @@ PHP_FUNCTION(cii_run)
    function definition, where the functions purpose is also documented. Please 
    follow this convention for the convenience of others editing your code.
 */
+PHP_FUNCTION(base_url)
+{
+	char *request_uri = NULL;
+	uint request_uri_len = 0;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &request_uri, &request_uri_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	zval **base_url;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
+		zval *server;
+		zval **server_name;
+		zval **server_port;
+		// 这里要初始化一下，不然得不到$_SERVER
+		if (PG(auto_globals_jit)) {
+			zend_is_auto_global("_SERVER", sizeof("_SERVER")-1);
+		}
+		server = PG(http_globals)[TRACK_VARS_SERVER];
+
+		if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_NAME", sizeof("SERVER_NAME"), (void**)&server_name) && Z_TYPE_PP(server_name) == IS_STRING ){
+			char *server_name_port;
+			if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_PORT", sizeof("SERVER_PORT"), (void**)&server_port) && Z_TYPE_PP(server_port) == IS_STRING ){
+				spprintf(&server_name_port, 0, "http://%s:%s/", Z_STRVAL_PP(server_name), Z_STRVAL_PP(server_port));
+			}else{
+				spprintf(&server_name_port, 0, "http://%s/", Z_STRVAL_PP(server_name));
+			}
+			MAKE_STD_ZVAL(*base_url);
+			ZVAL_STRING(*base_url, server_name_port, 0);
+		}else{
+			MAKE_STD_ZVAL(*base_url);
+			ZVAL_EMPTY_STRING(*base_url);
+		}
+		zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, base_url, sizeof(zval *), NULL);
+	}
+	if( request_uri && request_uri_len ){
+		char *server_require_uri;
+		spprintf(&server_require_uri, 0, "%s/%s", Z_STRVAL_PP(base_url), request_uri);
+		RETURN_STRING(server_require_uri, 0);
+	}else{
+		RETURN_ZVAL(*base_url, 1, 0);
+	}
+}
 
 /* {{{ php_cii_init_globals
  */
@@ -437,7 +479,7 @@ static void php_cii_globals_dtor(zend_cii_globals *cii_globals)
 	// 现在变成自动释放？
 	// if( cii_globals->cii_CII_G(controller_obj) ) zval_ptr_dtor(&cii_globals->cii_CII_G(controller_obj));
 	// if( cii_globals->CII_G(app_path) ) efree(cii_globals->CII_G(app_path));
-	if( cii_globals->configs ) zval_ptr_dtor(&cii_globals->configs);
+	// if( cii_globals->configs ) zval_ptr_dtor(&cii_globals->configs);
 
 	// efree(CII_G(app_path));
 	// zval_ptr_dtor(&configs);
@@ -457,6 +499,8 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_loader)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_input)(INIT_FUNC_ARGS_PASSTHRU);
+	//
+	REGISTER_STRING_CONSTANT("BASEPATH", "123", CONST_CS | CONST_PERSISTENT);
 	//
 	return SUCCESS;
 }
@@ -511,6 +555,7 @@ PHP_MINFO_FUNCTION(cii)
  */
 const zend_function_entry cii_functions[] = {
 	PHP_FE(cii_run,	NULL)		/* For testing, remove later. */
+	PHP_FE(base_url,	NULL)
 	PHP_FE_END	/* Must be the last line in cii_functions[] */
 };
 /* }}} */
