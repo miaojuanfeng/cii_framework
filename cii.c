@@ -326,7 +326,7 @@ PHP_FUNCTION(cii_run)
 		CII_CALL_USER_METHOD_EX(&CII_G(input_obj), "__construct", &cii_input_retval, 0, NULL);
 		zval_ptr_dtor(&cii_input_retval);
 	}
-	
+
 	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 
 	zval **run_controller;
@@ -337,16 +337,22 @@ PHP_FUNCTION(cii_run)
 	if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), 2) || zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&run_method) == FAILURE ){
 		php_error(E_ERROR, "Method is empty");
 	}
+	zval *dir_path = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("dir_path"), 1 TSRMLS_CC);
 
 	zval **controllers_path;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
 		Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
 		php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
 	}
+RETURN_ZVAL(CII_G(uri_obj), 1, 0);
 
 	char *file;
 	uint file_len;
-	file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(run_controller));
+	if( dir_path ){
+		file_len = spprintf(&file, 0, "%s/%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_P(dir_path), Z_STRVAL_PP(run_controller));
+	}else{
+		file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(run_controller));
+	}
 
 	if (!zend_hash_exists(&EG(included_files), file, file_len + 1)){
 		CII_ALLOC_ACTIVE_SYMBOL_TABLE();

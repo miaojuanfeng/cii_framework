@@ -332,7 +332,7 @@ PHP_METHOD(cii_db_result, result)
 		
 		if( Z_TYPE_P(result_id) != IS_BOOL ){
 			MAKE_STD_ZVAL(mysql_assoc);
-			ZVAL_LONG(mysql_assoc, 2);
+			ZVAL_LONG(mysql_assoc, 1);
 
 			result_type[0] = &mysql_assoc;
 
@@ -345,6 +345,39 @@ PHP_METHOD(cii_db_result, result)
 			zval_ptr_dtor(&mysql_assoc);
 
 			zend_update_property(cii_db_result_ce, getThis(), "result_array", 12, retval TSRMLS_CC);
+			//
+			zval *retval_copy;
+			ALLOC_ZVAL(retval_copy);
+			INIT_PZVAL_COPY(retval_copy, retval);
+			zval_copy_ctor(retval_copy);
+			//
+			zend_class_entry **std_class_ce;
+			if( Z_TYPE_P(retval_copy) == IS_ARRAY && zend_hash_find(EG(class_table), "stdclass", 9, (void**)&std_class_ce) != FAILURE ){
+				HashPosition pos;
+				char *key;
+				uint key_len;
+				ulong idx;
+				zval **value;
+				uint key_type;
+				//
+				for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(retval_copy), &pos);
+				    zend_hash_has_more_elements_ex(Z_ARRVAL_P(retval_copy), &pos) == SUCCESS;
+				    zend_hash_move_forward_ex(Z_ARRVAL_P(retval_copy), &pos)){
+					// if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_P(retval_copy), &key, &key_len, &idx, 0, &pos)) == HASH_KEY_NON_EXISTENT){
+					// 	continue;
+					// }
+					if(zend_hash_get_current_data_ex(Z_ARRVAL_P(retval_copy), (void**)&value, &pos) == FAILURE){
+						continue;
+					}
+					// 要分离一份，不然result_array()函数返回的也是对象
+					convert_to_object(*value);
+					/*
+					*	update CII_G(CII_G(configs))
+					*/
+					//RETURN_ZVAL(retval_copy, 1, 1);
+				}
+			}
+			//
 			RETURN_ZVAL(retval, 1, 1);
 		}else{
 			RETURN_ZVAL(result_array, 1, 0);
@@ -371,7 +404,7 @@ PHP_METHOD(cii_db_result, result_array)
 		
 		if( Z_TYPE_P(result_id) != IS_BOOL ){
 			MAKE_STD_ZVAL(mysql_assoc);
-			ZVAL_LONG(mysql_assoc, 1);
+			ZVAL_LONG(mysql_assoc, 2);
 
 			result_type[0] = &mysql_assoc;
 

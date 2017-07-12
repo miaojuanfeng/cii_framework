@@ -43,6 +43,8 @@ PHP_METHOD(cii_uri, __construct)
 // ZVAL_STRING(test, "news", 1);
 // zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, sizeof(zval *), NULL);
 
+	uint dir_i = 0;
+
     if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), (void**)&query) && Z_TYPE_PP(query) == IS_STRING ){
 
     	zval zstr;
@@ -82,8 +84,16 @@ PHP_METHOD(cii_uri, __construct)
 			*	update cii_uri::segments
 			*/
 	    	uint i = 1;
+	    	uint uri_i = 1;
 	    	HashPosition pos;
 	    	zval **value;
+
+	    	char *file = NULL;
+	    	zval **controllers_path;
+			if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
+				Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
+				php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
+			}
 	    	// zval *segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
 	    	// zval *rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 	    	for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(uri_arr), &pos);
@@ -94,8 +104,20 @@ PHP_METHOD(cii_uri, __construct)
 					}
 					Z_ADDREF_PP(value);
 		    		zend_hash_index_update(Z_ARRVAL_P(segments),  i, value, sizeof(zval *), NULL);
-		    		Z_ADDREF_PP(value);
-		    		zend_hash_index_update(Z_ARRVAL_P(rsegments),  i, value, sizeof(zval *), NULL);
+
+		    		if( file ){
+						efree(file);
+					}
+					spprintf(&file, 0, "%s/%s/%s", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(value));
+					char realpath[MAXPATHLEN];
+					//	cms/cms/cms/aa/bb/cc/dd -> bug
+					if (!VCWD_REALPATH(file, realpath)) {
+						Z_ADDREF_PP(value);
+		    			zend_hash_index_update(Z_ARRVAL_P(rsegments),  uri_i, value, sizeof(zval *), NULL);
+		    			uri_i++;
+					}else{
+						dir_i++;
+					}
 		    		i++;
 	    	}
 	    	zval_dtor(&zdelim);
@@ -107,8 +129,55 @@ PHP_METHOD(cii_uri, __construct)
     /*
 	*	update cii_uri::rsegments
 	*/
-    zval **class, **method;
-    if( zend_hash_index_find(Z_ARRVAL_P(segments), 1, (void**)&class) == FAILURE ||
+	// uint uri_i = 1;
+	// char *file = NULL;
+	// zval **class, **method;
+	// zval **controllers_path;
+	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
+	// 	Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
+	// 	php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
+	// }
+	// while(1){
+	// 	if( zend_hash_index_find(Z_ARRVAL_P(segments), uri_i, (void**)&class) != FAILURE &&
+	// 		(Z_TYPE_PP(class) == IS_STRING && Z_STRLEN_PP(class) != 0) ){
+	// 		//
+	// 		if( file ){
+	// 			efree(file);
+	// 		}
+	// 		spprintf(&file, 0, "%s/%s/%s", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(class));
+	// 		char realpath[MAXPATHLEN];
+	// 		if (!VCWD_REALPATH(file, realpath)) {
+	// 			break;
+	// 		}
+	// 	}
+	// 	uri_i++;
+	// }
+	char *dir = NULL;
+	zval **dir_seg;
+	for(uint j=1;j<=dir_i;j++){
+		char *p = dir;
+		if( zend_hash_index_find(Z_ARRVAL_P(segments), j, (void**)&dir_seg) != FAILURE && Z_TYPE_PP(dir_seg) == IS_STRING && Z_STRLEN_PP(dir_seg) != 0){
+			if( dir ){
+				spprintf(&dir, 0, "%s/%s", dir, Z_STRVAL_PP(dir_seg));
+			}else{
+				spprintf(&dir, 0, "%s", Z_STRVAL_PP(dir_seg));
+			}
+		}
+		if( p ){
+			efree(p);
+		}
+	}
+
+	if( dir_i ){
+		zval *dir_path;
+		MAKE_STD_ZVAL(dir_path);
+		ZVAL_STRING(dir_path, dir, 0);
+		zend_update_property(cii_uri_ce, getThis(), ZEND_STRL("dir_path"), dir_path TSRMLS_CC);
+		zval_ptr_dtor(&dir_path);
+	}
+
+	zval **class, **method;
+	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&class) == FAILURE ||
 		(Z_TYPE_PP(class) == IS_STRING && Z_STRLEN_PP(class) == 0) ){
 		zval **default_controller;
 		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_controller", 19, (void**)&default_controller) == FAILURE ||
@@ -118,7 +187,7 @@ PHP_METHOD(cii_uri, __construct)
 		Z_ADDREF_PP(default_controller);
 		zend_hash_index_update(Z_ARRVAL_P(rsegments), 1, default_controller, sizeof(zval *), NULL);
 	}
-	if( zend_hash_index_find(Z_ARRVAL_P(segments), 2, (void**)&method) == FAILURE ||
+	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&method) == FAILURE ||
 		(Z_TYPE_PP(method) == IS_STRING && Z_STRLEN_PP(method) == 0) ){
 		zval **default_method;
 		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_method", 15, (void**)&default_method) == FAILURE ||
