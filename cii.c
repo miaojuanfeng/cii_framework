@@ -432,9 +432,9 @@ PHP_FUNCTION(cii_base_url)
 		if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_NAME", sizeof("SERVER_NAME"), (void**)&server_name) && Z_TYPE_PP(server_name) == IS_STRING ){
 			char *server_name_port;
 			if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_PORT", sizeof("SERVER_PORT"), (void**)&server_port) && Z_TYPE_PP(server_port) == IS_STRING ){
-				spprintf(&server_name_port, 0, "http://%s:%s/", Z_STRVAL_PP(server_name), Z_STRVAL_PP(server_port));
+				spprintf(&server_name_port, 0, "http://%s:%s", Z_STRVAL_PP(server_name), Z_STRVAL_PP(server_port));
 			}else{
-				spprintf(&server_name_port, 0, "http://%s/", Z_STRVAL_PP(server_name));
+				spprintf(&server_name_port, 0, "http://%s", Z_STRVAL_PP(server_name));
 			}
 			MAKE_STD_ZVAL(*base_url);
 			ZVAL_STRING(*base_url, server_name_port, 0);
