@@ -344,7 +344,6 @@ PHP_FUNCTION(cii_run)
 		Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
 		php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
 	}
-RETURN_ZVAL(CII_G(uri_obj), 1, 0);
 
 	char *file;
 	uint file_len;
