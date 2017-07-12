@@ -347,7 +347,7 @@ PHP_FUNCTION(cii_run)
 
 	char *file;
 	uint file_len;
-	if( dir_path ){
+	if( dir_path && Z_TYPE_P(dir_path) == IS_STRING ){
 		file_len = spprintf(&file, 0, "%s/%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_P(dir_path), Z_STRVAL_PP(run_controller));
 	}else{
 		file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(run_controller));

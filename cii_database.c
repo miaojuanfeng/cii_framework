@@ -122,6 +122,8 @@ PHP_METHOD(cii_database, query)
 		php_error(E_ERROR, "Call CII_Database::query function failed");
 	}
 	zval_ptr_dtor(&func_name);
+	//
+	zend_update_property(cii_database_ce, getThis(), "last_query", 10, sql TSRMLS_CC);
 	/* update affected_rows */
 	zend_class_entry **mysqli_result_ce;
 	zval *result_affected_rows;
@@ -243,11 +245,83 @@ PHP_METHOD(cii_database, where)
 	RETURN_TRUE;
 }
 
+PHP_METHOD(cii_database, order_by)
+{
+	zval *order_by;
+	char *order;
+	uint order_len;
+	char *ascend = "ASC";
+	uint ascend_len = 3;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &order, &order_len, &ascend, &ascend_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	order_by = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("order_by"), 1 TSRMLS_CC);
+
+	if( Z_TYPE_P(order_by) == IS_NULL ){
+		char *query;
+		spprintf(&query, 0, " ORDER BY %s %s", order, ascend);
+		MAKE_STD_ZVAL(order_by);
+		ZVAL_STRING(order_by, query, 0);
+		zend_update_property(cii_database_ce, getThis(), "order_by", 8, order_by TSRMLS_CC);
+	}else if( Z_TYPE_P(order_by) == IS_STRING ){
+		char *query;
+		spprintf(&query, 0, " ORDER BY %s %s", order, ascend);
+		zval_dtor(order_by);
+		ZVAL_STRING(order_by, query, 0);
+	}else{
+		RETURN_FALSE;
+	}
+	RETURN_TRUE;
+}
+
+PHP_METHOD(cii_database, limit)
+{
+	zval *limit;
+	char *lmt;
+	uint lmt_len;
+	char *offset = NULL;
+	uint offset_len = 0;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &lmt, &lmt_len, &offset, &offset_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	limit = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("limit"), 1 TSRMLS_CC);
+
+	if( Z_TYPE_P(limit) == IS_NULL ){
+		char *query;
+		if( offset && offset_len ){
+			spprintf(&query, 0, " LIMIT %s , %s", lmt, offset);
+		}else{
+			spprintf(&query, 0, " LIMIT %s", lmt);
+		}
+		MAKE_STD_ZVAL(limit);
+		ZVAL_STRING(limit, query, 0);
+		zend_update_property(cii_database_ce, getThis(), "limit", 5, limit TSRMLS_CC);
+	}else if( Z_TYPE_P(limit) == IS_STRING ){
+		char *query;
+		if( offset && offset_len ){
+			spprintf(&query, 0, " LIMIT %s , %s", lmt, offset);
+		}else{
+			spprintf(&query, 0, " LIMIT %s", lmt);
+		}
+		zval_dtor(limit);
+		ZVAL_STRING(limit, query, 0);
+	}else{
+		RETURN_FALSE;
+	}
+	RETURN_TRUE;
+}
+
 PHP_METHOD(cii_database, get)
 {
 	zval *select;
 	zval *from;
 	zval *where;
+	zval *order_by;
+	zval *limit;
 	char *query;
 	uint query_len;
 	zval *last_query;
@@ -255,6 +329,8 @@ PHP_METHOD(cii_database, get)
 	select = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("select"), 1 TSRMLS_CC);
 	from = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("from"), 1 TSRMLS_CC);
 	where = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("where"), 1 TSRMLS_CC);
+	order_by = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("order_by"), 1 TSRMLS_CC);
+	limit = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("limit"), 1 TSRMLS_CC);
 
 	if( Z_TYPE_P(select) == IS_STRING ){
 		query_len = spprintf(&query, 0, "%s", Z_STRVAL_P(select));
@@ -264,8 +340,25 @@ PHP_METHOD(cii_database, get)
 		query_len = spprintf(&query, 0, "%s%s", Z_STRVAL_P(select), Z_STRVAL_P(from));
 	}
 	if( Z_TYPE_P(where) == IS_STRING ){
-		efree(query);
-		query_len = spprintf(&query, 0, "%s%s%s", Z_STRVAL_P(select), Z_STRVAL_P(from), Z_STRVAL_P(where));
+		char *p = query;
+		query_len = spprintf(&query, 0, "%s%s", query, Z_STRVAL_P(where));
+		if(p){
+			efree(p);
+		}
+	}
+	if( Z_TYPE_P(order_by) == IS_STRING ){
+		char *p = query;
+		query_len = spprintf(&query, 0, "%s%s", query, Z_STRVAL_P(order_by));
+		if(p){
+			efree(p);
+		}
+	}
+	if( Z_TYPE_P(limit) == IS_STRING ){
+		char *p = query;
+		query_len = spprintf(&query, 0, "%s%s", query, Z_STRVAL_P(limit));
+		if(p){
+			efree(p);
+		}
 	}
 	//
 	MAKE_STD_ZVAL(last_query);
@@ -509,6 +602,8 @@ PHP_MINIT_FUNCTION(cii_database)
 		PHP_ME(cii_database, select, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, from, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, where, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, order_by, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, limit, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, get, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, last_query, NULL, ZEND_ACC_PUBLIC)
 		PHP_FE_END
@@ -589,6 +684,18 @@ PHP_MINIT_FUNCTION(cii_database)
 	 * @var	string
 	 */
 	zend_declare_property_null(cii_database_ce, ZEND_STRL("where"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * CII_Database::order_by
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("order_by"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * CII_Database::limit
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("limit"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	/**
 	 * CII_Database::last_query
 	 *
