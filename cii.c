@@ -176,6 +176,10 @@ PHP_FUNCTION(cii_run)
 	cii_init_configs();
 	CII_G(app_path) = cii_get_apppath();
 	/*
+	*	Do not use CONST_PERSISTENT, because after load cii, ci can not register constant BASEPATH.
+	*/
+	REGISTER_MAIN_STRING_CONSTANT("BASEPATH", cii_get_apppath(), CONST_CS);
+	/*
 	*	get the config item
 	*/
 	HashPosition pos;
@@ -405,7 +409,7 @@ PHP_FUNCTION(cii_run)
    function definition, where the functions purpose is also documented. Please 
    follow this convention for the convenience of others editing your code.
 */
-PHP_FUNCTION(base_url)
+PHP_FUNCTION(cii_base_url)
 {
 	char *request_uri = NULL;
 	uint request_uri_len = 0;
@@ -500,8 +504,6 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_input)(INIT_FUNC_ARGS_PASSTHRU);
 	//
-	REGISTER_STRING_CONSTANT("BASEPATH", "123", CONST_CS | CONST_PERSISTENT);
-	//
 	return SUCCESS;
 }
 /* }}} */
@@ -555,7 +557,7 @@ PHP_MINFO_FUNCTION(cii)
  */
 const zend_function_entry cii_functions[] = {
 	PHP_FE(cii_run,	NULL)		/* For testing, remove later. */
-	PHP_FE(base_url,	NULL)
+	PHP_FE(cii_base_url,	NULL)
 	PHP_FE_END	/* Must be the last line in cii_functions[] */
 };
 /* }}} */
