@@ -51,7 +51,8 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
     zval *router_obj;
     zval *loader_obj;
     zval *output_obj;
-	zval *input_obj;
+    zval *input_obj;
+    zval *session_obj;
 
     zend_class_entry *controller_ce;
     zval *controller_obj;
