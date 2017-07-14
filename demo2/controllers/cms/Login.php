@@ -1,14 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Login extends CI_Controller {
+class Login {
 
 	public function __construct()
 	{
-		parent::__construct();
-		convert_get_slashes_pretty_link();
-
-		$this->load->model('cms/login_model');
+		$this->load->model('cms/login_model', 'login_model');
 	}
 
 	public function index()

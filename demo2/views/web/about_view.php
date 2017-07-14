@@ -27,7 +27,7 @@
 
                                                 <div class="col-sm-4 module_number_2 module_cont pb0 pl27 module_text_area">
                                                     <div class="module_content">
-                                                        <p><img src="<?=base_url('assets/uploads/page/'.$page->page_id)?>" alt="" width="460" height="406" /></p>
+                                                        <p><img src="<?=cii_base_url('assets/uploads/page/'.$page->page_id)?>" alt="" width="460" height="406" /></p>
                                                     </div>
                                                 </div><!-- .module_cont -->
 
@@ -45,10 +45,10 @@
     <!-- <div class="fixed_bg bg1"></div> -->
            
     <div class="content_bg"></div>
-    <script type="text/javascript" src="<?=base_url('assets/js/jquery-ui.min.js')?>"></script>    
-    <script type="text/javascript" src="<?=base_url('assets/js/modules.js')?>"></script>
-    <script type="text/javascript" src="<?=base_url('assets/js/theme.js')?>"></script>
-    <script type="text/javascript" src="<?=base_url('assets/js/bootstrap.min.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/jquery-ui.min.js')?>"></script>    
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/modules.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/theme.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/bootstrap.min.js')?>"></script>
     <script>
         jQuery(document).ready(function(){
             "use strict";

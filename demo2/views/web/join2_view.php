@@ -131,9 +131,9 @@
     </footer>       
            
     <div class="content_bg"></div>
-    <script type="text/javascript" src="<?=base_url('assets/js/jquery-ui.min.js')?>"></script>    
-    <script type="text/javascript" src="<?=base_url('assets/js/modules.js')?>"></script>
-    <script type="text/javascript" src="<?=base_url('assets/js/theme.js')?>"></script>
-    <script type="text/javascript" src="<?=base_url('assets/js/bootstrap.min.js')?>"></script>    
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/jquery-ui.min.js')?>"></script>    
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/modules.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/theme.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/bootstrap.min.js')?>"></script>    
 </body>
 </html>

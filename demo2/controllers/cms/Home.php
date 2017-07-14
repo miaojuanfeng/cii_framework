@@ -1,23 +1,22 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Home extends CI_Controller {
+class Home {
 
 	public function __construct()
 	{
-		parent::__construct();
-		check_session_timeout();
-		check_is_login();
-		convert_get_slashes_pretty_link();
-		check_permission();
+		// check_session_timeout();
+		// check_is_login();
+		// convert_get_slashes_pretty_link();
+		// check_permission();
 
 		$this->load->model('cms/main_model');
-		$this->load->model('cms/country_model');
 	}
 
 	public function index()
 	{
 		redirect('cms/main/select');
+		// echo "Hello world";
 	}
 
 	public function update()

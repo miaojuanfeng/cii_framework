@@ -1,17 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Page extends CI_Controller {
+class Page {
 
 	public function __construct()
 	{
-		parent::__construct();
-		check_session_timeout();
-		check_is_login();
-		convert_get_slashes_pretty_link();
-		check_permission();
-
-		$this->load->model('cms/page_model');
+		$this->load->model('cms/page_model', 'page_model');
 	}
 
 	public function index()

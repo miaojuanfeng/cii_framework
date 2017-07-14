@@ -11,7 +11,7 @@
         <div class="fs_blog_module is_masonry this_is_blog">
             <div class="blogpost_preview_fw">
                 <div class="fw_preview_wrapper">
-                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=base_url('assets/img/blog/fullscreen/1.jpg')?>" alt="" /></div>
+                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=cii_base_url('assets/img/blog/fullscreen/1.jpg')?>" alt="" /></div>
                     <div class="blogpreview_top">
                         <div class="box_date">
                             <span class="box_month">Mar</span>
@@ -22,14 +22,14 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Lorem ipsum dolor</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Lorem ipsum dolor</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Lobortis diam, gravida feugiat a nulla nisl a eros phasellus consectetur adipiscing elit. Morbi facilisis, arcu ac eget malesuada malesuada sodio.
                         </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>681</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -54,13 +54,13 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Nulla quis sem</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Nulla quis sem</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Consectetur adipiscing elit. Morbi facilisis, arcu ac eget malesuada malesuada, sodio sem lobortis diam, gravida feugiat a nulla nisl a eros phasellus.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>508</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -74,7 +74,7 @@
             
             <div class="blogpost_preview_fw">
                 <div class="fw_preview_wrapper">
-                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=base_url('assets/img/blog/fullscreen/2.jpg')?>" alt="" /></div>
+                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=cii_base_url('assets/img/blog/fullscreen/2.jpg')?>" alt="" /></div>
                     <div class="blogpreview_top">
                         <div class="box_date">
                             <span class="box_month">Mar</span>
@@ -85,14 +85,14 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Fullwidth Image Post</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Fullwidth Image Post</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Morbi facilisis, arcu ac eget malesuada malesuada sodio. Lobortis diam, gravida feugiat a nulla nisl a eros phasellus consectetur adipiscing elit.
                         </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>1237</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -118,14 +118,14 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Fusce nec tellus</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Fusce nec tellus</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Ut accumsan lorem nunc, ut lobortis urna hendrerit et. Sed non erat porta, feugiat mi nec, tincidunt massa maecenas faucibus sollicitudin.
                         </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>186</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -139,7 +139,7 @@
             
             <div class="blogpost_preview_fw">
                 <div class="fw_preview_wrapper">
-                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=base_url('assets/img/blog/fullscreen/3.jpg')?>" alt="" /></div>
+                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=cii_base_url('assets/img/blog/fullscreen/3.jpg')?>" alt="" /></div>
                     <div class="blogpreview_top">
                         <div class="box_date">
                             <span class="box_month">Mar</span>
@@ -150,13 +150,13 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Vestibulum lacinia arcu</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Vestibulum lacinia arcu</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Maecenas non velit nec nulla commodo faucibus maecenas velit lacus, bibendum vel nec placerat a, scelerisque eu lacus pellentesque sollicitudin.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>157</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -170,7 +170,7 @@
             
             <div class="blogpost_preview_fw">
                 <div class="fw_preview_wrapper">
-                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=base_url('assets/img/blog/fullscreen/4.jpg')?>" alt="" /></div>
+                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=cii_base_url('assets/img/blog/fullscreen/4.jpg')?>" alt="" /></div>
                     <div class="blogpreview_top">
                         <div class="box_date">
                             <span class="box_month">Mar</span>
@@ -181,14 +181,14 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Class aptent taciti</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Class aptent taciti</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Quisque sem nisl, pretium eu mauris vel, feugiat pulvinar mauris sed laoreet et est eu pellentesquesteres imperdiet aenean auctor diam. 
                         </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>178</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -213,14 +213,14 @@
                             <span><a href="javascript:void(0)">4 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Curabitur sodales ligula</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Curabitur sodales ligula</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Donec semper orci eu leo rhoncus, tincidunt aliquam dui cursus quisque sem nisl, eu pellentesquestes mauris vel, feugiat pulvinar.
                         </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>285</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -234,7 +234,7 @@
             
             <div class="blogpost_preview_fw">
                 <div class="fw_preview_wrapper">
-                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=base_url('assets/img/blog/fullscreen/5.jpg')?>" alt="" /></div>
+                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=cii_base_url('assets/img/blog/fullscreen/5.jpg')?>" alt="" /></div>
                     <div class="blogpreview_top">
                         <div class="box_date">
                             <span class="box_month">Mar</span>
@@ -245,13 +245,13 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Sed convallis tristique</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Sed convallis tristique</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Phasellus ante libero, iaculis vitae ipsum sit amet, ultrices dignissim massa morbi ut ante element consequat libero nec, ornare dui sed vivamus.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>176</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -276,13 +276,13 @@
                             <span><a href="javascript:void(0)">4 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Fusce ac turpis</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Fusce ac turpis</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Amet dolor, ac consectetur adipiscing elit egestas egetfusce lacinia sed purus vel pellentesquesteres nec duis pulvinar, ac vehicula felis, non aliquet.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>618</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -307,13 +307,13 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Quisque volutpat velit</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Quisque volutpat velit</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Amet dolor, ac consectetur adipiscing elit egestas egetfusce lacinia sed purus vel pellentesquesteres molestie nec duis pulvinar vehicula felis non eget.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>103</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -327,7 +327,7 @@
             
             <div class="blogpost_preview_fw">
                 <div class="fw_preview_wrapper">
-                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=base_url('assets/img/blog/fullscreen/6.jpg')?>" alt="" /></div>
+                    <div class="pf_output_container"><img class="featured_image_standalone" src="<?=cii_base_url('assets/img/blog/fullscreen/6.jpg')?>" alt="" /></div>
                     <div class="blogpreview_top">
                         <div class="box_date">
                             <span class="box_month">Mar</span>
@@ -338,13 +338,13 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Class aptent taciti</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Class aptent taciti</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Lorem ipsum dolor sit amet dolor, ac consectetur adipiscing elit egetfusce lacinia sed purus at molestie nec duis pulvinar, ac vehicula felisnon.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>127</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -369,14 +369,14 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Integer euismod lacus</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Integer euismod lacus</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Lorem ipsum dolor sit amet dolor, ac consectetur adipiscing elit egetfusce lacinia pellentesque at molestie nec duis.
                         </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>64</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -401,14 +401,14 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Vestibulum ante ipsum</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Vestibulum ante ipsum</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Lorem ipsum dolor sit amet dolor, ac consectetur adipiscing elit egetfusce lacinia sed purus at molestie nec duis pulvinar, ac vehicula felis.  
                         </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>63</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -433,13 +433,13 @@
                             <span><a href="javascript:void(0)">4 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Curabitur sit amet</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Curabitur sit amet</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Amet dolor, ac consectetur adipiscing elit egestas egetfusce lacinia sed purus eget pellentesquestes molestie nec duis. Pulvinar, ac vehicula felis, non.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>64</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -464,13 +464,13 @@
                             <span><a href="javascript:void(0)">3 comments</a></span>
                         </div>
                     </div>
-                    <h6 class="blogpost_title"><a href="<?=base_url('show/detail')?>">Integer lacinia massa</a></h6>
+                    <h6 class="blogpost_title"><a href="<?=cii_base_url('show/detail')?>">Integer lacinia massa</a></h6>
                     <div class="blogpost_fw_content">
                         <article class="contentarea">
                             Lorem ipsum dolor sit amet dolor, ac consectetur adipiscing elit egetfusce lacinia sed purus at molestie nec duis pulvinar, ac vehicula vivamus.                        </article>
                     </div>
                     <div class="fw_preview_footer">
-                        <a href="<?=base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
+                        <a href="<?=cii_base_url('show/detail')?>" class="shortcode_button btn_small btn_type4 reamdore">Read More</a>
                         <div class="block_likes">
                             <div class="post-views"><i class="stand_icon icon-eye"></i> <span>69</span></div>
                             <div class="gallery_likes gallery_likes_add ">
@@ -505,10 +505,10 @@
     </footer>    
             
     <div class="content_bg"></div>
-    <script type="text/javascript" src="<?=base_url('assets/js/jquery-ui.min.js')?>"></script>    
-    <script type="text/javascript" src="<?=base_url('assets/js/modules.js')?>"></script>
-    <script type="text/javascript" src="<?=base_url('assets/js/theme.js')?>"></script>
-    <script type="text/javascript" src="<?=base_url('assets/js/bootstrap.min.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/jquery-ui.min.js')?>"></script>    
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/modules.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/theme.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/bootstrap.min.js')?>"></script>
     <script>
         jQuery(window).resize(function () {
             "use strict";

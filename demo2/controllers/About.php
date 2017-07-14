@@ -17,6 +17,10 @@ class About {
 		/* page */
 		$thisSelect = array(
 			'where' => array('page_id' => 1),
+			'order' => 'page_id',
+			'ascend' => 'ASC',
+			'limit' => 2,
+			'page' => 0,
 			'return' => 'result'
 		);
 

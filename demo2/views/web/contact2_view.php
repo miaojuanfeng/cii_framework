@@ -69,7 +69,7 @@
                                                     <li class="contact_info_item">
                                                         <div class="contact_info_wrapper text-center">
                                                             <i class="glyphicon glyphicon-qrcode"></i>
-                                                            <div class="contact_info_text"><img src="<?=base_url('assets/images/code.jpg')?>" alt="" width="120"></div>
+                                                            <div class="contact_info_text"><img src="<?=cii_base_url('assets/images/code.jpg')?>" alt="" width="120"></div>
                                                         </div>
                                                     </li>
                                                     <!-- <li class="contact_info_item">
@@ -155,11 +155,11 @@
     </footer> 
            
     <div class="content_bg"></div>
-    <script type="text/javascript" src="<?=base_url('assets/js/jquery-ui.min.js')?>"></script>    
-    <script type="text/javascript" src="<?=base_url('assets/js/modules.js')?>"></script>
-    <script type="text/javascript" src="<?=base_url('assets/js/theme.js')?>"></script> 
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/jquery-ui.min.js')?>"></script>    
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/modules.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/theme.js')?>"></script> 
     <!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCqo-F2TnMAABZvfV5yTQLlWvUCJlJViU&amp;sensor=false"></script> -->
-    <script type="text/javascript" src="<?=base_url('assets/js/bootstrap.min.js')?>"></script>
+    <script type="text/javascript" src="<?=cii_base_url('assets/js/bootstrap.min.js')?>"></script>
     <!-- <script type="text/javascript">        
         function initialize() {
             "use strict";

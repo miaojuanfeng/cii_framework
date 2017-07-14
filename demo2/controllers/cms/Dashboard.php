@@ -1,16 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Dashboard extends CI_Controller {
+class Dashboard {
 
 	public function __construct()
 	{
-		parent::__construct();
-		check_session_timeout();
-		check_is_login();
-
-		$this->load->model('cms/dashboard_model');
-		$this->load->model('cms/user_model');
+		$this->load->model('cms/dashboard_model', 'dashboard_model');
+		$this->load->model('cms/user_model', 'user_model');
 	}
 
 	public function index()

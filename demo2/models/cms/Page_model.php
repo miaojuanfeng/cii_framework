@@ -70,6 +70,15 @@ class Page_model {
 						$thisField = $key;
 						$this->db->where($thisField, urldecode($value));
 						break;
+					case 'order':
+						$data['order'] = $value;
+						break;
+					case 'ascend':
+						$data['ascend'] = $value;
+						break;
+					case 'limit':
+						$data['limit'] = $value;
+						break;
 					case 'page':
 						$data['offset'] = $value;
 						break;
@@ -98,7 +107,7 @@ class Page_model {
 		$this->db->from('page');
 		$this->db->where('page_deleted', 0);
 		$query = $this->db->get();
-		// echo $this->db->last_query();
+		echo $this->db->last_query();
 
 		/* return */
 		if(isset($data['return'])){
