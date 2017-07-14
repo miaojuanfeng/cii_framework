@@ -30,7 +30,45 @@ PHP_METHOD(cii_session, __construct)
 	/*
 	*	update session property
 	*/
+	Z_UNSET_ISREF_P(*session);
 	zend_update_property(cii_session_ce, getThis(), ZEND_STRL("session"), *session TSRMLS_CC);
+	Z_SET_ISREF_P(*session);
+}
+
+/*  
+*	cii_session::__get()
+*/
+PHP_METHOD(cii_session, __get)
+{
+	char *key;
+	uint key_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	//
+	zval **value;
+	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
+		RETURN_ZVAL(*value, 1, 0);
+	}
+	php_error(E_NOTICE, "Undefined index: %s", key);
+}
+
+/*  
+*	cii_session::__set()
+*/
+PHP_METHOD(cii_session, __set)
+{
+	char *key;
+	uint key_len;
+	zval *value;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz" ,&key, &key_len, &value) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	//
+	Z_ADDREF_P(value);
+	zend_hash_update(Z_ARRVAL_P(session), key, key_len+1, &value, sizeof(zval *), NULL);
 }
 
 /**
@@ -51,23 +89,15 @@ PHP_METHOD(cii_session, unset_userdata)
 	/*
 	*	fetch session
 	*/
-	zval **session;
-	if( zend_hash_find(&EG(symbol_table), "_SESSION", 9, (void**)&session) == FAILURE ){
-		MAKE_STD_ZVAL(*session);
-		array_init(*session);
-	}
+	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
-	int result = !zend_hash_del(Z_ARRVAL_P(*session), key, key_len+1);
-	/*
-	*	update session property
-	*/
-	zend_update_property(cii_session_ce, getThis(), ZEND_STRL("session"), *session TSRMLS_CC);
-	//
-	RETURN_BOOL(result);
+	RETURN_BOOL(!zend_hash_del(Z_ARRVAL_P(session), key, key_len+1));
 }
 
 zend_function_entry cii_session_methods[] = {
 	PHP_ME(cii_session, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(cii_session, __get, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_session, __set, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, unset_userdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };

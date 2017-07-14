@@ -226,7 +226,7 @@ PHP_FUNCTION(cii_run)
 		cii_loader_import(file, file_len, 0 TSRMLS_CC);
 
 		if( zend_hash_find(EG(active_symbol_table), "config", 7, (void**)&cfg) == FAILURE || Z_TYPE_PP(cfg) != IS_ARRAY ){
-			php_error(E_ERROR, "Your config file does not appear to be formatted correctly.");	
+			php_error(E_ERROR, "Your config file does not appear to be formatted correctly.");
 		}
 		/*
 		*	foreach config array that defined in file
