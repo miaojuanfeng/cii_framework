@@ -294,9 +294,9 @@ PHP_FUNCTION(cii_run)
 	MAKE_STD_ZVAL(CII_G(router_obj));
 	object_init_ex(CII_G(router_obj), cii_router_ce);
 	if (zend_hash_exists(&cii_router_ce->function_table, "__construct", 12)) {
-		// zval *cii_router_retval;
-		// CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
-		// zval_ptr_dtor(&cii_router_retval);
+		zval *cii_router_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
+		zval_ptr_dtor(&cii_router_retval);
 	}
 	/*
 	* load CII_Loader object -- this object should be first one, or will get segment fault
@@ -390,9 +390,11 @@ PHP_FUNCTION(cii_run)
 	CII_G(instance_ce)  = *run_class_ce;
 	CII_G(instance_obj) = CII_G(controller_obj);
 	/*
-	*	add loader object to CII_Loader::load
+	*	add loader object to CII_Loader::load 考虑下要不要给loader加一个__get()函数
 	*/
 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
+	zend_update_property(cii_loader_ce, CII_G(loader_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
+	zend_update_property(cii_loader_ce, CII_G(loader_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
 	//
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "config", 6, CII_G(configs) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);

@@ -71,6 +71,46 @@ PHP_METHOD(cii_session, __set)
 	zend_hash_update(Z_ARRVAL_P(session), key, key_len+1, &value, sizeof(zval *), NULL);
 }
 
+/*  
+*	cii_session::tempdata()
+*/
+PHP_METHOD(cii_session, tempdata)
+{
+	char *key;
+	uint key_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	//
+	zval **value;
+	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
+		RETURN_ZVAL(*value, 1, 0);
+	}
+	php_error(E_NOTICE, "Undefined index: %s", key);
+}
+
+/**
+*	Class constructor
+*
+*	@return	void
+*
+*	public function set_userdata()
+*/
+PHP_METHOD(cii_session, set_userdata)
+{
+	char *key;
+	uint key_len;
+	zval *value;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz" ,&key, &key_len, &value) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	//
+	Z_ADDREF_P(value);
+	zend_hash_update(Z_ARRVAL_P(session), key, key_len+1, &value, sizeof(zval *), NULL);
+}
+
 /**
 *	Class constructor
 *
@@ -98,6 +138,8 @@ zend_function_entry cii_session_methods[] = {
 	PHP_ME(cii_session, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(cii_session, __get, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, __set, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_session, tempdata, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_session, set_userdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, unset_userdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
