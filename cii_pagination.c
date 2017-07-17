@@ -177,8 +177,12 @@ PHP_METHOD(cii_pagination, create_links)
 	/*
 	* init CII_Pagination::cur_page
 	*/
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &_cur_page) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &_cur_page) == FAILURE) {
 		return;
+	}
+
+	if( !_cur_page ){
+		_cur_page = 1;
 	}
 
 	_base_url   = zend_read_property(cii_pagination_ce, getThis(), ZEND_STRL("base_url"),   1 TSRMLS_CC);

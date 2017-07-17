@@ -35,7 +35,7 @@
 #include "cii_output.c"
 // #include "cii_database.c" // not load cii_database here, load it in cii_loader
 #include "cii_input.c"
-
+// 看看能不能动态加载
 #include "cii_session.c"
 
 ZEND_DECLARE_MODULE_GLOBALS(cii)
@@ -338,6 +338,16 @@ PHP_FUNCTION(cii_run)
 		CII_CALL_USER_METHOD_EX(&CII_G(session_obj), "__construct", &cii_session_retval, 0, NULL);
 		zval_ptr_dtor(&cii_session_retval);
 	}
+	/*
+	* load CII_Pagination object -- this object should be first one, or will get segment fault
+	*/
+	MAKE_STD_ZVAL(CII_G(pagination_obj));
+	object_init_ex(CII_G(pagination_obj), cii_pagination_ce);
+	if (zend_hash_exists(&cii_pagination_ce->function_table, "__construct", 12)) {
+		zval *cii_pagination_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(pagination_obj), "__construct", &cii_pagination_retval, 0, NULL);
+		zval_ptr_dtor(&cii_pagination_retval);
+	}
 
 	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 
@@ -395,6 +405,7 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
+	zend_update_property(cii_loader_ce, CII_G(loader_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
 	//
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "config", 6, CII_G(configs) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
@@ -403,6 +414,7 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
 	//
 	if ( zend_hash_exists(&(*run_class_ce)->function_table, "__construct", 12) ){
 		zval *run_class_retval;
@@ -471,6 +483,13 @@ PHP_FUNCTION(cii_base_url)
 	}else{
 		RETURN_ZVAL(*base_url, 1, 0);
 	}
+}
+
+ZEND_BEGIN_ARG_INFO_EX(cii_get_instance_arginfo, 0, 1, 0)
+ZEND_END_ARG_INFO()
+PHP_FUNCTION(cii_get_instance)
+{
+	RETURN_ZVAL(CII_G(controller_obj), 1, 0);
 }
 
 /* {{{ php_cii_init_globals
@@ -580,6 +599,7 @@ PHP_MINFO_FUNCTION(cii)
 const zend_function_entry cii_functions[] = {
 	PHP_FE(cii_run,	NULL)		/* For testing, remove later. */
 	PHP_FE(cii_base_url,	NULL)
+	PHP_FE(cii_get_instance,	cii_get_instance_arginfo)
 	PHP_FE_END	/* Must be the last line in cii_functions[] */
 };
 /* }}} */
