@@ -1,17 +1,14 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Banner extends CI_Controller {
+class Banner {
 
 	public function __construct()
 	{
-		parent::__construct();
-		check_session_timeout();
-		check_is_login();
-		convert_get_slashes_pretty_link();
-		check_permission();
 
-		$this->load->model('cms/banner_model');
+		$this->load->model('cms/banner_model', 'banner_model');
+
+		$this->load->helper('123', 'helpers/function_helper.php');
 	}
 
 	public function index()

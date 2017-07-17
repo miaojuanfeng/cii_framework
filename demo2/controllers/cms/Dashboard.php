@@ -7,6 +7,8 @@ class Dashboard {
 	{
 		$this->load->model('cms/dashboard_model', 'dashboard_model');
 		$this->load->model('cms/user_model', 'user_model');
+
+		$this->load->helper('123', 'helpers/function_helper.php');
 	}
 
 	public function index()

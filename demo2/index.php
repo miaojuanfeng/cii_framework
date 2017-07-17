@@ -12,10 +12,11 @@ function convert_object_to_array($obj){
 	return (array)$obj;
 }
 
+
 	$cii = cii_run('configs/config.php');
-	echo "<pre>";
-	var_dump($cii);
-	echo "</pre>";
+	// echo "<pre style='text-align:left;'>";
+	// var_dump($cii);
+	// echo "</pre>";
 
 	// $_SESSION['address'] = 'asdasdasd';
 	// $a = $_SESSION;

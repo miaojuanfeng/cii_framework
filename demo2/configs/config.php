@@ -12,6 +12,10 @@
 
 	$config['views_path'] = 'views';
 
+
+	$config['libraries_path'] = 'libraries';
+
+
 	$config['default_controller'] = 'home';
 
 	$config['default_method'] = 'index';

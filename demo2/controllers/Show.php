@@ -5,7 +5,8 @@ class Show {
 
 	public function __construct()
 	{
-		
+		// $c = cii_get_instance();
+		// var_dump($c);
 	}
 
 	public function index()

@@ -97,7 +97,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 	<body>
 
-		<?php $this->load->view('cms/inc/header-area.php'); ?>
+		<?php $this->load->view('cms/inc/header-area'); ?>
 
 		
 
@@ -394,7 +394,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 
-		<?php $this->load->view('cms/inc/footer-area.php'); ?>
+		<?php $this->load->view('cms/inc/footer-area'); ?>
 
 	</body>
 </html>

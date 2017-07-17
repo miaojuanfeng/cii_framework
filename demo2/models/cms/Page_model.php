@@ -107,7 +107,7 @@ class Page_model {
 		$this->db->from('page');
 		$this->db->where('page_deleted', 0);
 		$query = $this->db->get();
-		echo $this->db->last_query();
+		// echo $this->db->last_query();
 
 		/* return */
 		if(isset($data['return'])){

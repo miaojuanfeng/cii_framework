@@ -10,7 +10,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-		<?php $this->load->view('cms/inc/head-area.php'); ?>
+		<?php $this->load->view('cms/inc/head-area'); ?>
 
 		<script>
 		$(function(){
@@ -54,7 +54,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 	<body>
 
-		<?php $this->load->view('cms/inc/header-area.php'); ?>
+		<?php $this->load->view('cms/inc/header-area'); ?>
 
 		
 
@@ -103,7 +103,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			<div class="container-fluid">
 				<div class="row">
 
-					<h2 class="col-sm-12"><a href="<?=base_url('cms/banner')?>">Banner management</a> > <?=ucfirst($this->router->fetch_method())?> banner</h2>
+					<h2 class="col-sm-12"><a href="<?=cii_base_url('cms/banner')?>">Banner management</a> > <?=ucfirst($this->router->fetch_method())?> banner</h2>
 
 					<div class="col-sm-12">
 						<form method="post" enctype="multipart/form-data">
@@ -118,7 +118,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 											$banner_photo = $_SERVER['DOCUMENT_ROOT'].'/joy/km'.$banner_photo_link;
 											if(file_exists($banner_photo)){
 												echo '<h4 class="corpcolor-font">Banner photo</h4>';
-												echo '<img class="box-bg" src="'.base_url($banner_photo_link).'?'.time().'" />';
+												echo '<img class="box-bg" src="'.cii_base_url($banner_photo_link).'?'.time().'" />';
 											}
 										}
 										?>
@@ -251,7 +251,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 						<div class="fieldset left">
 
 							<div class="list-area">
-								<form name="list" action="<?=base_url('cms/banner/delete')?>" method="post">
+								<form name="list" action="<?=cii_base_url('cms/banner/delete')?>" method="post">
 									<input type="hidden" name="banner_id" />
 									<input type="hidden" name="banner_delete_reason" />
 									<table class="list" id="banner">
@@ -262,7 +262,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 												<th>Modify</th>
 												<th width="40"></th>
 												<th width="40" class="text-right">
-													<a href="<?=base_url('cms/banner/insert')?>" class="btn btn-sm btn-primary" data-toggle="tooltip" title="Insert">
+													<a href="<?=cii_base_url('cms/banner/insert')?>" class="btn btn-sm btn-primary" data-toggle="tooltip" title="Insert">
 														<i class="glyphicon glyphicon-plus"></i>
 													</a>
 												</th>
@@ -273,7 +273,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 												<td class="expandable"><a target='_blank' href='<?=$value->banner_banner?>'><?=$value->banner_name?></a></td>
 												<td class="expandable"><?=convert_datetime_to_date($value->banner_modifydate)?></td>
 												<td class="text-right">
-													<a href="<?=base_url('cms/banner/update/banner_id/'.$value->banner_id)?>" class="btn btn-sm btn-primary" data-toggle="tooltip" title="Update">
+													<a href="<?=cii_base_url('cms/banner/update/banner_id/'.$value->banner_id)?>" class="btn btn-sm btn-primary" data-toggle="tooltip" title="Update">
 														<i class="glyphicon glyphicon-pencil"></i>
 													</a>
 												</td>
@@ -370,7 +370,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 
-		<?php $this->load->view('cms/inc/footer-area.php'); ?>
+		<?php $this->load->view('cms/inc/footer-area'); ?>
 
 	</body>
 </html>

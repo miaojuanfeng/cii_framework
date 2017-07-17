@@ -10,7 +10,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-		<?php $this->load->view('cms/inc/head-area.php'); ?>
+		<?php $this->load->view('cms/inc/head-area'); ?>
 
 		<script>
 		$(function(){
@@ -54,10 +54,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 	<body>
 
-		<?php $this->load->view('cms/inc/header-area.php'); ?>
+		<?php $this->load->view('cms/inc/header-area'); ?>
 
 		
-
 
 
 
@@ -103,12 +102,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			<div class="container-fluid">
 				<div class="row">
 
-					<h2 class="col-sm-12"><a href="<?=base_url('cms/video')?>">Video management</a> > <?=ucfirst($this->router->fetch_method())?> video</h2>
+					<h2 class="col-sm-12"><a href="<?=cii_base_url('cms/video')?>">Video management</a> > <?=ucfirst($this->router->fetch_method())?> video</h2>
 
 					<div class="col-sm-12">
 						<form method="post" enctype="multipart/form-data">
 							<input type="hidden" name="video_id" value="<?=$video->video_id?>" />
-							<input type="hidden" name="referrer" value="<?=$this->agent->referrer()?>" />
+							<input type="hidden" name="referrer" value="<?=$_SERVER['referrer']?>" />
 							<div class="fieldset">
 								<div class="row">
 									<div class="col-sm-4 col-xs-12 pull-right">
@@ -118,7 +117,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 										// 	$video_photo = $_SERVER['DOCUMENT_ROOT'].'/minedition'.$video_photo_link;
 										// 	if(file_exists($video_photo)){
 										// 		echo '<h4 class="corpcolor-font">Video photo</h4>';
-										// 		echo '<img class="box-bg" src="'.base_url($video_photo_link).'?'.time().'" />';
+										// 		echo '<img class="box-bg" src="'.cii_base_url($video_photo_link).'?'.time().'" />';
 										// 	}
 										// }
 										?>
@@ -246,7 +245,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 						<div class="fieldset left">
 
 							<div class="list-area">
-								<form name="list" action="<?=base_url('cms/video/delete')?>" method="post">
+								<form name="list" action="<?=cii_base_url('cms/video/delete')?>" method="post">
 									<input type="hidden" name="video_id" />
 									<input type="hidden" name="video_delete_reason" />
 									<table class="list" id="video">
@@ -257,7 +256,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 												<th>Modify</th>
 												<th width="40"></th>
 												<th width="40" class="text-right">
-													<a href="<?=base_url('cms/video/insert')?>" class="btn btn-sm btn-primary disabled" data-toggle="tooltip" title="Insert">
+													<a href="<?=cii_base_url('cms/video/insert')?>" class="btn btn-sm btn-primary disabled" data-toggle="tooltip" title="Insert">
 														<i class="glyphicon glyphicon-plus"></i>
 													</a>
 												</th>
@@ -268,7 +267,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 												<td class="expandable"><a target='_blank' href='<?=$value->video_video?>'><?=$value->video_name?></a></td>
 												<td class="expandable"><?=convert_datetime_to_date($value->video_modifydate)?></td>
 												<td class="text-right">
-													<a href="<?=base_url('cms/video/update/video_id/'.$value->video_id)?>" class="btn btn-sm btn-primary" data-toggle="tooltip" title="Update">
+													<a href="<?=cii_base_url('cms/video/update/video_id/'.$value->video_id)?>" class="btn btn-sm btn-primary" data-toggle="tooltip" title="Update">
 														<i class="glyphicon glyphicon-pencil"></i>
 													</a>
 												</td>
@@ -365,7 +364,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 
-		<?php $this->load->view('cms/inc/footer-area.php'); ?>
+		<?php $this->load->view('cms/inc/footer-area'); ?>
 
 	</body>
 </html>
