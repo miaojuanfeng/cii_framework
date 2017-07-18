@@ -1,6 +1,4 @@
 #include "cii_loader.h"
-#include "cii_database.c"
-#include "cii_pagination.c"
 
 zend_class_entry *cii_loader_ce;
 
@@ -462,8 +460,6 @@ zend_function_entry cii_loader_methods[] = {
 
 PHP_MINIT_FUNCTION(cii_loader)
 {
-	ZEND_MINIT(cii_database)(INIT_FUNC_ARGS_PASSTHRU);
-	ZEND_MINIT(cii_pagination)(INIT_FUNC_ARGS_PASSTHRU);
 	/**
 	 * Router Class
 	 *

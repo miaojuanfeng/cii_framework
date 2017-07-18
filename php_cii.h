@@ -54,7 +54,12 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
     zval *input_obj;
     //
     zval *session_obj;
+    zval *benchmark_obj;
     zval *pagination_obj;
+
+    int output_replace_elapsed_time;
+    int output_replace_memory_usage;
+    int output_replace_memory_peak;
 
     zend_class_entry *controller_ce;
     zval *controller_obj;
