@@ -127,11 +127,14 @@ PHP_METHOD(cii_database, query)
 	/* update affected_rows */
 	zend_class_entry **mysqli_result_ce;
 	zval *result_affected_rows;
+	zval *result_insert_id;
 	if( zend_hash_find(EG(class_table), "mysqli_result", 14, (void**)&mysqli_result_ce) == FAILURE ){
 		zend_error(E_ERROR, "mysqli class has not initialized yet");
 	}
 	result_affected_rows = zend_read_property(*mysqli_result_ce, db_obj, ZEND_STRL("affected_rows"), 1 TSRMLS_CC);
+	result_insert_id = zend_read_property(*mysqli_result_ce, db_obj, ZEND_STRL("insert_id"), 1 TSRMLS_CC);
 	zend_update_property(cii_database_ce, getThis(), "affected_rows", 13, result_affected_rows TSRMLS_CC);
+	zend_update_property(cii_database_ce, getThis(), "insert_id", 9, result_insert_id TSRMLS_CC);
 	/* add object to CII_Database */
 	zend_update_property(cii_database_ce, getThis(), "result_id", 9, retval TSRMLS_CC);
 	/* call CII_DB_result __construct */
@@ -158,6 +161,15 @@ PHP_METHOD(cii_database, affected_rows)
 	affected_rows = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("affected_rows"), 1 TSRMLS_CC);
 
 	RETURN_ZVAL(affected_rows, 1, 0);
+}
+
+PHP_METHOD(cii_database, insert_id)
+{
+	zval *insert_id;
+
+	insert_id = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("insert_id"), 1 TSRMLS_CC);
+
+	RETURN_ZVAL(insert_id, 1, 0);
 }
 
 PHP_METHOD(cii_database, select)
@@ -359,6 +371,254 @@ PHP_METHOD(cii_database, get)
 		if(p){
 			efree(p);
 		}
+	}
+	//
+	MAKE_STD_ZVAL(last_query);
+	ZVAL_STRING(last_query, query, 1);
+	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
+	zval_ptr_dtor(&last_query);
+	//
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
+
+	MAKE_STD_ZVAL(query_query);
+	ZVAL_STRING(query_query, query, 1);
+
+	query_param[0] = &query_query;
+
+	MAKE_STD_ZVAL(func_name);
+	ZVAL_STRING(func_name, "query", 1);
+	if( call_user_function_ex(NULL, &getThis(), func_name, &retval, 1, query_param, 0, NULL TSRMLS_CC) == FAILURE ){
+		php_error(E_ERROR, "Call CII_Database::query function failed");
+	}
+	zval_ptr_dtor(&func_name);
+	//
+	RETURN_ZVAL(retval, 1, 1);
+}
+
+PHP_METHOD(cii_database, insert)
+{
+	zval *from;
+	HashTable *values;
+	char *query = NULL;
+	uint query_len;
+	zval *last_query;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &values) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	char *key;
+	uint key_len;
+	ulong idx;
+	zval **value;
+	/*
+	* using HashPosition pos to make sure not modify data's hashtable internal pointer
+	*/
+	HashPosition pos;
+	char *query_keys = NULL;
+	char *query_values = NULL;
+	for(zend_hash_internal_pointer_reset_ex(values, &pos);
+	    zend_hash_has_more_elements_ex(values, &pos) == SUCCESS;
+	    zend_hash_move_forward_ex(values, &pos)){
+		if(zend_hash_get_current_key_ex(values, &key, &key_len, &idx, 0, &pos) != HASH_KEY_IS_STRING){
+			php_error(E_NOTICE, "Array key type should be String");
+			continue;
+		}
+		if(zend_hash_get_current_data_ex(values, (void**)&value, &pos) == FAILURE){
+			continue;
+		}
+
+		if( Z_TYPE_PP(value) != IS_STRING ){
+			convert_to_string(*value);
+		}
+
+		if( query_keys ){
+			char *p = query_keys;
+			spprintf(&query_keys, 0, "%s, %s", query_keys, key);
+			if(p){
+				efree(p);
+			}
+		}else{
+			spprintf(&query_keys, 0, "%s", key);
+		}
+		if( query_values ){
+			char *p = query_values;
+			spprintf(&query_values, 0, "%s, '%s'", query_values, Z_STRVAL_PP(value));
+			if(p){
+				efree(p);
+			}
+		}else{
+			spprintf(&query_values, 0, "'%s'", Z_STRVAL_PP(value));
+		}
+	}
+	char *p = query;
+	query_len = spprintf(&query, 0, "INSERT INTO %s(%s) VALUES(%s)", Z_STRVAL_P(from), query_keys, query_values);
+	if(p){
+		efree(p);
+	}
+	//
+	MAKE_STD_ZVAL(last_query);
+	ZVAL_STRING(last_query, query, 1);
+	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
+	zval_ptr_dtor(&last_query);
+	//
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
+
+	MAKE_STD_ZVAL(query_query);
+	ZVAL_STRING(query_query, query, 1);
+
+	query_param[0] = &query_query;
+
+	MAKE_STD_ZVAL(func_name);
+	ZVAL_STRING(func_name, "query", 1);
+	if( call_user_function_ex(NULL, &getThis(), func_name, &retval, 1, query_param, 0, NULL TSRMLS_CC) == FAILURE ){
+		php_error(E_ERROR, "Call CII_Database::query function failed");
+	}
+	zval_ptr_dtor(&func_name);
+	//
+	RETURN_ZVAL(retval, 1, 1);
+}
+
+PHP_METHOD(cii_database, update)
+{
+	zval *from;
+	zval *where;
+	HashTable *set;
+	char *query = NULL;
+	uint query_len;
+	zval *last_query;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &set) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	where = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("where"), 1 TSRMLS_CC);
+
+	char *key;
+	uint key_len;
+	ulong idx;
+	zval **value;
+	/*
+	* using HashPosition pos to make sure not modify data's hashtable internal pointer
+	*/
+	HashPosition pos;
+	for(zend_hash_internal_pointer_reset_ex(set, &pos);
+	    zend_hash_has_more_elements_ex(set, &pos) == SUCCESS;
+	    zend_hash_move_forward_ex(set, &pos)){
+		if(zend_hash_get_current_key_ex(set, &key, &key_len, &idx, 0, &pos) != HASH_KEY_IS_STRING){
+			php_error(E_NOTICE, "Array key type should be String");
+			continue;
+		}
+		if(zend_hash_get_current_data_ex(set, (void**)&value, &pos) == FAILURE){
+			continue;
+		}
+
+		if( Z_TYPE_PP(value) != IS_STRING ){
+			convert_to_string(*value);
+		}
+		
+		if( query ){
+			char *p = query;
+			query_len = spprintf(&query, 0, "%s, %s = '%s'", query, key, Z_STRVAL_PP(value));
+			if(p){
+				efree(p);
+			}
+		}else{
+			query_len = spprintf(&query, 0, "UPDATE %s SET %s = '%s'", Z_STRVAL_P(from), key, Z_STRVAL_PP(value));
+		}
+	}
+	if( Z_TYPE_P(where) == IS_STRING ){
+		char *p = query;
+		query_len = spprintf(&query, 0, "%s%s", query, Z_STRVAL_P(where));
+		if(p){
+			efree(p);
+		}
+	}
+	//
+	MAKE_STD_ZVAL(last_query);
+	ZVAL_STRING(last_query, query, 1);
+	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
+	zval_ptr_dtor(&last_query);
+	//
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
+
+	MAKE_STD_ZVAL(query_query);
+	ZVAL_STRING(query_query, query, 1);
+
+	query_param[0] = &query_query;
+
+	MAKE_STD_ZVAL(func_name);
+	ZVAL_STRING(func_name, "query", 1);
+	if( call_user_function_ex(NULL, &getThis(), func_name, &retval, 1, query_param, 0, NULL TSRMLS_CC) == FAILURE ){
+		php_error(E_ERROR, "Call CII_Database::query function failed");
+	}
+	zval_ptr_dtor(&func_name);
+	//
+	RETURN_ZVAL(retval, 1, 1);
+}
+
+PHP_METHOD(cii_database, delete)
+{
+	zval *from;
+	HashTable *where;
+	char *query = NULL;
+	uint query_len;
+	zval *last_query;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &where) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	char *key;
+	uint key_len;
+	ulong idx;
+	zval **value;
+	/*
+	* using HashPosition pos to make sure not modify data's hashtable internal pointer
+	*/
+	HashPosition pos;
+	for(zend_hash_internal_pointer_reset_ex(where, &pos);
+	    zend_hash_has_more_elements_ex(where, &pos) == SUCCESS;
+	    zend_hash_move_forward_ex(where, &pos)){
+		if(zend_hash_get_current_key_ex(where, &key, &key_len, &idx, 0, &pos) != HASH_KEY_IS_STRING){
+			php_error(E_NOTICE, "Array key type should be String");
+			continue;
+		}
+		if(zend_hash_get_current_data_ex(where, (void**)&value, &pos) == FAILURE){
+			continue;
+		}
+
+		if( Z_TYPE_PP(value) != IS_STRING ){
+			convert_to_string(*value);
+		}
+		
+		if( query ){
+			char *p = query;
+			query_len = spprintf(&query, 0, "%s AND %s = '%s'", query, key, Z_STRVAL_PP(value));
+			if(p){
+				efree(p);
+			}
+		}else{
+			query_len = spprintf(&query, 0, "WHERE %s = '%s'", key, Z_STRVAL_PP(value));
+		}
+	}
+	char *p = query;
+	if( query ){
+		query_len = spprintf(&query, 0, "DELETE FROM %s %s", Z_STRVAL_P(from), query);
+	}else{
+		query_len = spprintf(&query, 0, "DELETE FROM %s", Z_STRVAL_P(from));
+	}
+	if(p){
+		efree(p);
 	}
 	//
 	MAKE_STD_ZVAL(last_query);
@@ -605,7 +865,11 @@ PHP_MINIT_FUNCTION(cii_database)
 		PHP_ME(cii_database, order_by, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, limit, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, get, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, insert, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, update, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, delete, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, last_query, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, insert_id, NULL, ZEND_ACC_PUBLIC)
 		PHP_FE_END
 	};
 
@@ -666,6 +930,12 @@ PHP_MINIT_FUNCTION(cii_database)
 	 * @var	long
 	 */
 	zend_declare_property_long(cii_database_ce, ZEND_STRL("affected_rows"), 0, ZEND_ACC_PUBLIC TSRMLS_CC);
+	/**
+	 * CII_Database::insert_id
+	 *
+	 * @var	long
+	 */
+	zend_declare_property_long(cii_database_ce, ZEND_STRL("insert_id"), 0, ZEND_ACC_PUBLIC TSRMLS_CC);
 	/**
 	 * CII_Database::select
 	 *
