@@ -19,6 +19,20 @@ PHP_METHOD(cii_loader, __construct)
     // }
 }
 
+/*  
+*	cii_loader::__get()
+*/
+PHP_METHOD(cii_loader, __get)
+{
+	char *key;
+	uint key_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	RETURN_ZVAL(zend_read_property(CII_G(controller_ce), CII_G(controller_obj), key, key_len, 1 TSRMLS_CC), 1, 0);
+	// php_error(E_NOTICE, "Undefined index: %s", key);
+}
+
 /**
 * View Loader
 *
@@ -476,13 +490,19 @@ PHP_METHOD(cii_loader, database)
 	RETURN_TRUE;
 }
 
+PHP_METHOD(cii_loader, language){
+
+}
+
 zend_function_entry cii_loader_methods[] = {
 	PHP_ME(cii_loader, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(cii_loader, __get, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, view, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, model, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, helper, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, library, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, database, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_loader, language, NULL, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 

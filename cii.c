@@ -297,9 +297,9 @@ PHP_FUNCTION(cii_run)
 	MAKE_STD_ZVAL(CII_G(router_obj));
 	object_init_ex(CII_G(router_obj), cii_router_ce);
 	if (zend_hash_exists(&cii_router_ce->function_table, "__construct", 12)) {
-		zval *cii_router_retval;
-		CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
-		zval_ptr_dtor(&cii_router_retval);
+		// zval *cii_router_retval;
+		// CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
+		// zval_ptr_dtor(&cii_router_retval);
 	}
 	/*
 	* load CII_Loader object -- this object should be first one, or will get segment fault
@@ -361,6 +361,16 @@ PHP_FUNCTION(cii_run)
 		CII_CALL_USER_METHOD_EX(&CII_G(benchmark_obj), "__construct", &cii_benchmark_retval, 0, NULL);
 		zval_ptr_dtor(&cii_benchmark_retval);
 	}
+	/*
+	* load CII_Lang object -- this object should be first one, or will get segment fault
+	*/
+	MAKE_STD_ZVAL(CII_G(lang_obj));
+	object_init_ex(CII_G(lang_obj), cii_lang_ce);
+	if (zend_hash_exists(&cii_lang_ce->function_table, "__construct", 12)) {
+		zval *cii_lang_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(lang_obj), "__construct", &cii_lang_retval, 0, NULL);
+		zval_ptr_dtor(&cii_lang_retval);
+	}
 
 	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 
@@ -413,14 +423,20 @@ PHP_FUNCTION(cii_run)
 	CII_G(instance_ce)  = *run_class_ce;
 	CII_G(instance_obj) = CII_G(controller_obj);
 	/*
-	*	add loader object to CII_Loader::load 考虑下要不要给loader加一个__get()函数
+	*	注入CII内核类对象实例到CII::Loader类对象成员变量中
+	*	使用CII_Loader::__get()函数替代以下注入过程，从Controller中自动获取对象
 	*/
-	zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
-	zend_update_property(cii_loader_ce, CII_G(loader_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
-	zend_update_property(cii_loader_ce, CII_G(loader_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
-	zend_update_property(cii_loader_ce, CII_G(loader_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
-	zend_update_property(cii_loader_ce, CII_G(loader_obj), "benchmark", 9, CII_G(benchmark_obj) TSRMLS_CC);
-	//
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "benchmark", 9, CII_G(benchmark_obj) TSRMLS_CC);
+	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "lang", 4, CII_G(lang_obj) TSRMLS_CC);
+	/*
+	*	注入CII内核类对象实例到活动控制器成员变量中
+	*/
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "config", 6, CII_G(configs) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
@@ -430,17 +446,47 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "benchmark", 9, CII_G(benchmark_obj) TSRMLS_CC);
-	//
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "lang", 4, CII_G(lang_obj) TSRMLS_CC);
+	/*
+	*	调用活动控制器构造方法
+	*	没有参数
+	*/
 	if ( zend_hash_exists(&(*run_class_ce)->function_table, "__construct", 12) ){
 		zval *run_class_retval;
 		CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), "__construct", &run_class_retval, 0, NULL);
 		zval_ptr_dtor(&run_class_retval);
 	}
-
+	/*
+	*	如果uri有带有参数，获取参数传入到method中
+	*	默认参数为空
+	*/
+	zval ***run_method_param = NULL;
+	uint run_method_param_count = 0;
+	/*
+	*	参数从rsegments下标为3的元素开始
+	*/
+	if( Z_ARRVAL_P(rsegments)->nNumOfElements > 2 ){
+		run_method_param_count = Z_ARRVAL_P(rsegments)->nNumOfElements - 2;
+		run_method_param = emalloc(run_method_param_count * sizeof(zval*));
+		for(int i=1;i<=run_method_param_count;i++){
+			zval **param;
+			if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), i+2) || zend_hash_index_find(Z_ARRVAL_P(rsegments), i+2, (void**)&param) == FAILURE ){
+				php_error(E_ERROR, "Get method parameters failed.");
+			}
+			Z_ADDREF_PP(param);
+			run_method_param[i-1] = param;
+		}
+	}
+	/*
+	*	调用活动控制器指定方法或默认方法，开始执行控制器
+	*	并将参数传入
+	*/
 	zval *run_method_retval;
-	CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), Z_STRVAL_PP(run_method), &run_method_retval, 0, NULL);
+	CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), Z_STRVAL_PP(run_method), &run_method_retval, run_method_param_count, run_method_param);
 	zval_ptr_dtor(&run_method_retval);
-
+	/*
+	*	释放内存，防止内存泄漏
+	*/
 	efree(CII_G(app_path));
 	zval_ptr_dtor(&CII_G(configs));
 	zval_ptr_dtor(&CII_G(uri_obj));

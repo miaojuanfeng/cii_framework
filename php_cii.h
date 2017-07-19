@@ -56,6 +56,7 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
     zval *session_obj;
     zval *benchmark_obj;
     zval *pagination_obj;
+    zval *lang_obj;
 
     int output_replace_elapsed_time;
     int output_replace_memory_usage;

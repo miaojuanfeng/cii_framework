@@ -650,6 +650,59 @@ PHP_METHOD(cii_database, last_query)
 {
 	RETURN_ZVAL(zend_read_property(cii_database_ce, getThis(), ZEND_STRL("last_query"), 1 TSRMLS_CC), 1, 0);
 }
+
+PHP_METHOD(cii_database, group_start)
+{
+	zval *group_start;
+	MAKE_STD_ZVAL(group_start);
+	ZVAL_STRING(group_start, " (", 1);
+	zend_update_property(cii_database_ce, getThis(), "group_start", 11, group_start TSRMLS_CC);
+	zval_ptr_dtor(&group_start);
+
+	RETURN_TRUE;
+}
+
+PHP_METHOD(cii_database, group_end)
+{
+	zval *group_end;
+	MAKE_STD_ZVAL(group_end);
+	ZVAL_STRING(group_end, " )", 1);
+	zend_update_property(cii_database_ce, getThis(), "group_end", 9, group_end TSRMLS_CC);
+	zval_ptr_dtor(&group_end);
+
+	RETURN_TRUE;
+}
+
+PHP_METHOD(cii_database, or_where)
+{
+	zval *where;
+	char *key;
+	uint key_len;
+	char *value;
+	uint value_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &key, &key_len, &value, &value_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	where = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("where"), 1 TSRMLS_CC);
+
+	if( Z_TYPE_P(where) == IS_NULL ){
+		char *query;
+		spprintf(&query, 0, " WHERE %s = '%s'", key, value);
+		MAKE_STD_ZVAL(where);
+		ZVAL_STRING(where, query, 0);
+		zend_update_property(cii_database_ce, getThis(), "where", 5, where TSRMLS_CC);
+	}else if( Z_TYPE_P(where) == IS_STRING ){
+		char *query;
+		spprintf(&query, 0, " %s OR %s = '%s'", Z_STRVAL_P(where), key, value);
+		zval_dtor(where);
+		ZVAL_STRING(where, query, 0);
+	}else{
+		RETURN_FALSE;
+	}
+	RETURN_TRUE;
+}
 /****************************************************************/
 PHP_METHOD(cii_db_result, __construct)
 {
@@ -870,6 +923,9 @@ PHP_MINIT_FUNCTION(cii_database)
 		PHP_ME(cii_database, delete, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, last_query, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, insert_id, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, group_start, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, group_end, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, or_where, NULL, ZEND_ACC_PUBLIC)
 		PHP_FE_END
 	};
 
@@ -972,6 +1028,18 @@ PHP_MINIT_FUNCTION(cii_database)
 	 * @var	string
 	 */
 	zend_declare_property_null(cii_database_ce, ZEND_STRL("last_query"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * CII_Database::group_start
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("group_start"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	/**
+	 * CII_Database::group_end
+	 *
+	 * @var	string
+	 */
+	zend_declare_property_null(cii_database_ce, ZEND_STRL("group_end"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	///////////////
 	///////////////
 	///////////////
