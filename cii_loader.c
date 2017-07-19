@@ -60,7 +60,19 @@ PHP_METHOD(cii_loader, view){
 		Z_TYPE_PP(views_path) != IS_STRING || Z_STRLEN_PP(views_path) == 0 ){
 		php_error(E_ERROR, "Your config 'views_path' does not appear to be formatted correctly.");
 	}
-	file_len = spprintf(&file, 0, "%s%s%s%s%s%s", CII_G(app_path), "/", Z_STRVAL_PP(views_path), "/", view, ".php");
+	/*
+	*	判断传入的文件名带不带.php
+	*/
+	if( view_len > 4 ){
+		char *p = view + view_len - 4;
+		if( !strncasecmp(p, ".php", 4) ){
+			file_len = spprintf(&file, 0, "%s/%s/%s", CII_G(app_path), Z_STRVAL_PP(views_path),  view);
+		}else{
+			file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(views_path), view);
+		}
+	}else{
+		file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(views_path), view);
+	}
 
 	if(zend_hash_exists(&EG(included_files), file, file_len + 1)){
 		efree(file);
@@ -196,8 +208,24 @@ PHP_METHOD(cii_loader, model){
 	*/
 	name_lower = zend_str_tolower_dup(model, model_len);
 	if( !name || !name_len ){
-		name = name_lower;
-		name_len = model_len;
+		if( strchr(name_lower, '/') ){
+			char *p = name_lower + model_len;
+			uint p_len = 0;
+			while( p != name_lower ){
+				if( *p == '/' ){
+					p++;
+					p_len--;
+					break;
+				}
+				p--;
+				p_len++;
+			}
+			name = estrndup(p, p_len);
+			name_len = p_len;
+		}else{
+			name = name_lower;
+			name_len = model_len;
+		}
 	}
 	if( zend_hash_find(CG(class_table), name, name_len+1, (void**)&ce) == SUCCESS ){
 		/*

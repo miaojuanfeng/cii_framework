@@ -51,7 +51,7 @@ PHP_METHOD(cii_session, __get)
 	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
-	php_error(E_NOTICE, "Undefined index: %s", key);
+	// php_error(E_NOTICE, "Undefined index: %s", key);
 }
 
 /*  
@@ -72,7 +72,25 @@ PHP_METHOD(cii_session, __set)
 }
 
 /*  
-*	cii_session::tempdata()
+*	cii_session::tempdata() - 还未实现这个方法
+*/
+PHP_METHOD(cii_session, set_tempdata)
+{
+	char *key;
+	uint key_len;
+	zval *value;
+	zval *t; // not used
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz|z" ,&key, &key_len, &value, &t) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	//
+	Z_ADDREF_P(value);
+	zend_hash_update(Z_ARRVAL_P(session), key, key_len+1, &value, sizeof(zval *), NULL);
+}
+
+/*  
+*	cii_session::tempdata() - 还未实现这个方法
 */
 PHP_METHOD(cii_session, tempdata)
 {
@@ -87,7 +105,7 @@ PHP_METHOD(cii_session, tempdata)
 	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
-	php_error(E_NOTICE, "Undefined index: %s", key);
+	// php_error(E_NOTICE, "Undefined index: %s", key);
 }
 
 /**
@@ -127,7 +145,7 @@ PHP_METHOD(cii_session, userdata)
 	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
-	php_error(E_NOTICE, "Undefined index: %s", key);
+	// php_error(E_NOTICE, "Undefined index: %s", key);
 }
 
 /**
@@ -157,6 +175,7 @@ zend_function_entry cii_session_methods[] = {
 	PHP_ME(cii_session, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(cii_session, __get, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, __set, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_session, set_tempdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, tempdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, set_userdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, userdata, NULL, ZEND_ACC_PUBLIC)
