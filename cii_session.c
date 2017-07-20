@@ -11,6 +11,7 @@ zend_class_entry *cii_session_ce;
 */
 PHP_METHOD(cii_session, __construct)
 {
+	char free_session = 0;
 	/*
 	*	call session_start() to init session
 	*/
@@ -26,6 +27,7 @@ PHP_METHOD(cii_session, __construct)
 	if( zend_hash_find(&EG(symbol_table), "_SESSION", 9, (void**)&session) == FAILURE ){
 		MAKE_STD_ZVAL(*session);
 		array_init(*session);
+		free_session = 1;
 	}
 	/*
 	*	update session property
@@ -33,6 +35,10 @@ PHP_METHOD(cii_session, __construct)
 	Z_UNSET_ISREF_P(*session);
 	zend_update_property(cii_session_ce, getThis(), ZEND_STRL("session"), *session TSRMLS_CC);
 	Z_SET_ISREF_P(*session);
+
+	if(free_session){
+		zval_ptr_dtor(session);
+	}
 }
 
 /*  

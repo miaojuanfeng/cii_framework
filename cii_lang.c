@@ -66,7 +66,7 @@ ZEND_API int cii_load_lang(zend_class_entry *cii_lang_ce, zval *cii_lang_obj, ch
 	zend_hash_update(Z_ARRVAL_P(is_loaded), langfile, langfile_len+1, &idiom, sizeof(zval *), NULL);
 
 	zval *language = zend_read_property(cii_lang_ce, cii_lang_obj, ZEND_STRL("language"), 1 TSRMLS_CC);
-	// php_array_merge(Z_ARRVAL_P(language), Z_ARRVAL_P(*lang), 0 TSRMLS_CC);
+	php_array_merge(Z_ARRVAL_P(language), Z_ARRVAL_P(*lang), 0 TSRMLS_CC);
 
 	CII_DESTROY_ACTIVE_SYMBOL_TABLE();
 
@@ -195,9 +195,9 @@ PHP_METHOD(cii_lang, load)
 		*	set lang file name
 		*/
 		if( idiom && Z_STRLEN_P(idiom) ){
-			len = spprintf(&file, 0, "%s%s%s%s%s", CII_G(app_path), "language/", Z_STRVAL_P(idiom), "/", fullfile);
+			len = spprintf(&file, 0, "%s%s%s%s%s", CII_G(app_path), "/language/", Z_STRVAL_P(idiom), "/", fullfile);
 		}else{
-			len = spprintf(&file, 0, "%s%s%s", CII_G(app_path), "language/", fullfile);
+			len = spprintf(&file, 0, "%s%s%s", CII_G(app_path), "/language/", fullfile);
 		}
 		/*
 		*	load lang file

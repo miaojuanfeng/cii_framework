@@ -40,7 +40,7 @@ PHP_METHOD(cii_uri, __construct)
 
 // zval *test;
 // MAKE_STD_ZVAL(test);
-// ZVAL_STRING(test, "news", 1);
+// ZVAL_STRING(test, "show", 1);
 // zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, sizeof(zval *), NULL);
 
 	uint dir_i = 0;
