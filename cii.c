@@ -138,6 +138,46 @@ CII_API int cii_loader_import(char *path, int len, int use_path TSRMLS_DC) {
 	    return 1;
 	}
 	return 0;
+
+	/* require_once/include_once
+	{
+		zend_file_handle file_handle;
+		char *resolved_path;
+
+		resolved_path = zend_resolve_path(Z_STRVAL_P(inc_filename), Z_STRLEN_P(inc_filename) TSRMLS_CC);
+		if (resolved_path) {
+			failure_retval = zend_hash_exists(&EG(included_files), resolved_path, strlen(resolved_path)+1);
+		} else {
+			resolved_path = Z_STRVAL_P(inc_filename);
+		}
+
+		if (failure_retval) {
+			// do nothing, file already included
+		} else if (SUCCESS == zend_stream_open(resolved_path, &file_handle TSRMLS_CC)) {
+
+			if (!file_handle.opened_path) {
+				file_handle.opened_path = estrdup(resolved_path);
+			}
+
+			if (zend_hash_add_empty_element(&EG(included_files), file_handle.opened_path, strlen(file_handle.opened_path)+1)==SUCCESS) {
+				new_op_array = zend_compile_file(&file_handle, (opline->extended_value==ZEND_INCLUDE_ONCE?ZEND_INCLUDE:ZEND_REQUIRE) TSRMLS_CC);
+				zend_destroy_file_handle(&file_handle TSRMLS_CC);
+			} else {
+				zend_file_handle_dtor(&file_handle TSRMLS_CC);
+				failure_retval=1;
+			}
+		} else {
+			if (opline->extended_value == ZEND_INCLUDE_ONCE) {
+				zend_message_dispatcher(ZMSG_FAILED_INCLUDE_FOPEN, Z_STRVAL_P(inc_filename) TSRMLS_CC);
+			} else {
+				zend_message_dispatcher(ZMSG_FAILED_REQUIRE_FOPEN, Z_STRVAL_P(inc_filename) TSRMLS_CC);
+			}
+		}
+		if (resolved_path != Z_STRVAL_P(inc_filename)) {
+			efree(resolved_path);
+		}
+	}
+	*/
 }
 
 static void cii_init_configs(){
