@@ -67,6 +67,7 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
 
     zend_class_entry *instance_ce;
     zval *instance_obj;
+    HashTable *view_symbol_table;
 ZEND_END_MODULE_GLOBALS(cii)
 
 #define CII_API ZEND_API

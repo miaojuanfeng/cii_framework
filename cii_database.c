@@ -810,7 +810,7 @@ PHP_METHOD(cii_db_result, result_array)
 		
 		if( Z_TYPE_P(result_id) != IS_BOOL ){
 			MAKE_STD_ZVAL(mysql_assoc);
-			ZVAL_LONG(mysql_assoc, 2);
+			ZVAL_LONG(mysql_assoc, 1);
 
 			result_type[0] = &mysql_assoc;
 

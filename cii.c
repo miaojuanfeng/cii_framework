@@ -162,6 +162,9 @@ static void cii_init_configs(){
 	MAKE_STD_ZVAL(views_dir);
 	ZVAL_STRINGL(views_dir, "views", 5, 1);
 	zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "views_path", 11, &views_dir, sizeof(zval *), NULL);
+	//
+	ALLOC_HASHTABLE(CII_G(view_symbol_table));
+    zend_hash_init(CII_G(view_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
 }
 
 PHP_FUNCTION(cii_run)
@@ -296,10 +299,18 @@ PHP_FUNCTION(cii_run)
 	*/
 	MAKE_STD_ZVAL(CII_G(router_obj));
 	object_init_ex(CII_G(router_obj), cii_router_ce);
-	if (zend_hash_exists(&cii_router_ce->function_table, "__construct", 12)) {
-		zval *cii_router_retval;
-		CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
-		zval_ptr_dtor(&cii_router_retval);
+	// if (zend_hash_exists(&cii_router_ce->function_table, "__construct", 12)) {
+	// 	zval *cii_router_retval;
+	// 	CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
+	// 	zval_ptr_dtor(&cii_router_retval);
+	// }
+	zval *rseg = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+	zval **class, **method;
+    if( zend_hash_index_find(Z_ARRVAL_P(rseg), 1, (void**)&class) != FAILURE ){
+		zend_update_property(cii_router_ce, CII_G(router_obj), ZEND_STRL("class"), *class TSRMLS_CC);
+	}
+	if( zend_hash_index_find(Z_ARRVAL_P(rseg), 2, (void**)&method) != FAILURE ){
+		zend_update_property(cii_router_ce, CII_G(router_obj), ZEND_STRL("method"), *method TSRMLS_CC);
 	}
 	/*
 	* load CII_Loader object -- this object should be first one, or will get segment fault
@@ -498,6 +509,8 @@ PHP_FUNCTION(cii_run)
 	zval_ptr_dtor(&CII_G(pagination_obj));
 	zval_ptr_dtor(&CII_G(benchmark_obj));
 	zval_ptr_dtor(&CII_G(lang_obj));
+	zend_hash_destroy(CII_G(view_symbol_table));
+ 	FREE_HASHTABLE(CII_G(view_symbol_table));
 	RETURN_ZVAL(CII_G(controller_obj), 0, 1);
 }
 /* }}} */

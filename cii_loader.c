@@ -2,6 +2,24 @@
 
 zend_class_entry *cii_loader_ce;
 
+ZEND_BEGIN_ARG_INFO_EX(cii_loader___get_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+
+/*
+*	function cii___get()
+*/
+ZEND_API void cii___get(INTERNAL_FUNCTION_PARAMETERS)
+{
+	char *key;
+	uint key_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	zval *value = zend_read_property(CII_G(controller_ce), CII_G(controller_obj), key, key_len, 1 TSRMLS_CC);
+	RETURN_ZVAL(value, 1, 0);
+}
+
 /**
 * Class constructor
 *
@@ -97,8 +115,8 @@ PHP_METHOD(cii_loader, view){
 		zend_rebuild_symbol_table(TSRMLS_C);
 	}*/
     old_active_symbol_table = EG(active_symbol_table);
-    ALLOC_HASHTABLE(EG(active_symbol_table));
-    zend_hash_init(EG(active_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
+    // ALLOC_HASHTABLE(EG(active_symbol_table));
+    // zend_hash_init(EG(active_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
 
 	if(data){
 		char *key;
@@ -118,9 +136,15 @@ PHP_METHOD(cii_loader, view){
 				continue;
 			}
 			CII_IF_ISREF_THEN_SEPARATE_ELSE_ADDREF(value);
-			zend_hash_update(EG(active_symbol_table), key, key_len, value, sizeof(zval *), NULL);
+			// zend_hash_update(EG(active_symbol_table), key, key_len, value, sizeof(zval *), NULL);
+			/*
+			*	追加到活动变量表中，不使用active_symbol_table的目的在于，
+			*	将活动变量表持久保存可以处理视图调用视图的视图嵌套获取不到变量的情况
+			*/
+			zend_hash_update(CII_G(view_symbol_table), key, key_len, value, sizeof(zval *), NULL);
 		}
 	}
+	EG(active_symbol_table) = CII_G(view_symbol_table);
 
 	if(php_output_start_user(NULL, 0, PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == SUCCESS){
 		if(is_return){	
@@ -143,8 +167,8 @@ PHP_METHOD(cii_loader, view){
 
 	efree(file);
 
-	zend_hash_destroy(EG(active_symbol_table));
-    FREE_HASHTABLE(EG(active_symbol_table));
+	// zend_hash_destroy(EG(active_symbol_table));
+ 	// FREE_HASHTABLE(EG(active_symbol_table));
     EG(active_symbol_table) = old_active_symbol_table;
 
 	if(!is_return){
@@ -223,9 +247,9 @@ PHP_METHOD(cii_loader, model){
 	name_lower = zend_str_tolower_dup(model, model_len);
 	if( !name || !name_len ){
 		if( strchr(name_lower, '/') ){
-			char *p = name_lower + model_len;
+			char *p = model + model_len;
 			uint p_len = 0;
-			while( p != name_lower ){
+			while( p != model ){
 				if( *p == '/' ){
 					p++;
 					p_len--;
@@ -237,11 +261,11 @@ PHP_METHOD(cii_loader, model){
 			name = estrndup(p, p_len);
 			name_len = p_len;
 		}else{
-			name = name_lower;
+			name = estrndup(model, model_len);
 			name_len = model_len;
 		}
 	}
-	if( zend_hash_find(CG(class_table), name, name_len+1, (void**)&ce) == SUCCESS ){
+	if( zend_hash_find(CG(class_table), name_lower, name_len+1, (void**)&ce) == SUCCESS ){
 		/*
 		*	new ce object
 		*/
@@ -263,6 +287,27 @@ PHP_METHOD(cii_loader, model){
 			zval *retval;
 			CII_CALL_USER_METHOD_EX(&new_object, "__construct", &retval, 0, NULL);
 			zval_ptr_dtor(&retval);
+		}
+		/*
+		*	向模型中注入__get()方法，用以获取控制器成员对象，如果已重载此函数则不注入
+		*/
+		if( !zend_hash_exists(&(*ce)->function_table, "__get", 6) ){
+			zend_function *func_pDest;
+			zend_function func;
+			func.internal_function.type = ZEND_INTERNAL_FUNCTION;
+			func.internal_function.function_name = "__get";
+			func.internal_function.scope = *ce;
+			func.internal_function.fn_flags = ZEND_ACC_PUBLIC;
+			func.internal_function.num_args = 0;
+			func.internal_function.required_num_args = 0;
+			func.internal_function.arg_info = (zend_arg_info*)cii_loader___get_arginfo+1;
+			func.internal_function.handler = cii___get;
+			if( zend_hash_add(&(*ce)->function_table, "__get", 6, &func, sizeof(zend_function), (void**)&func_pDest) == FAILURE ){
+				php_error(E_WARNING, "add __get method failed");
+			}else{
+				(*ce)->__get = func_pDest;
+				(*ce)->__get->common.fn_flags &= ~ZEND_ACC_ALLOW_STATIC;
+			}
 		}
 		//
 		zend_update_property(CII_G(controller_ce), CII_G(controller_obj), name, name_len, new_object TSRMLS_CC);

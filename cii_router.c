@@ -16,17 +16,17 @@ PHP_METHOD(cii_router, __construct)
 	/*
 	*	get cii_uri::rsegments
 	*/
-	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
-	/*
-	*	update cii_router::class and update cii_router::method
-	*/
-	zval **class, **method;
-    if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&class) != FAILURE ){
-		zend_update_property(cii_router_ce, getThis(), ZEND_STRL("class"), *class TSRMLS_CC);
-	}
-	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&method) != FAILURE ){
-		zend_update_property(cii_router_ce, getThis(), ZEND_STRL("method"), *method TSRMLS_CC);
-	}
+	// zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+	// /*
+	// *	update cii_router::class and update cii_router::method
+	// */
+	// zval **class, **method;
+ //    if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&class) != FAILURE ){
+	// 	zend_update_property(cii_router_ce, getThis(), ZEND_STRL("class"), *class TSRMLS_CC);
+	// }
+	// if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&method) != FAILURE ){
+	// 	zend_update_property(cii_router_ce, getThis(), ZEND_STRL("method"), *method TSRMLS_CC);
+	// }
 	/*
 	*	output log
 	*/
