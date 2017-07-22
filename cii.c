@@ -141,40 +141,55 @@ CII_API int cii_loader_import(char *path, int len, int use_path TSRMLS_DC) {
 
 	/* require_once/include_once
 	{
+		zval *inc_filename;
+
+		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &inc_filename) == FAILURE) {
+			return;
+		}
+
 		zend_file_handle file_handle;
 		char *resolved_path;
-
+		zend_op_array *new_op_array=NULL;
+		zend_bool failure_retval = 0;
 		resolved_path = zend_resolve_path(Z_STRVAL_P(inc_filename), Z_STRLEN_P(inc_filename) TSRMLS_CC);
 		if (resolved_path) {
 			failure_retval = zend_hash_exists(&EG(included_files), resolved_path, strlen(resolved_path)+1);
 		} else {
 			resolved_path = Z_STRVAL_P(inc_filename);
 		}
-
 		if (failure_retval) {
 			// do nothing, file already included
 		} else if (SUCCESS == zend_stream_open(resolved_path, &file_handle TSRMLS_CC)) {
-
 			if (!file_handle.opened_path) {
 				file_handle.opened_path = estrdup(resolved_path);
 			}
-
 			if (zend_hash_add_empty_element(&EG(included_files), file_handle.opened_path, strlen(file_handle.opened_path)+1)==SUCCESS) {
-				new_op_array = zend_compile_file(&file_handle, (opline->extended_value==ZEND_INCLUDE_ONCE?ZEND_INCLUDE:ZEND_REQUIRE) TSRMLS_CC);
+				new_op_array = zend_compile_file(&file_handle, ZEND_INCLUDE TSRMLS_CC);
 				zend_destroy_file_handle(&file_handle TSRMLS_CC);
 			} else {
 				zend_file_handle_dtor(&file_handle TSRMLS_CC);
 				failure_retval=1;
 			}
 		} else {
-			if (opline->extended_value == ZEND_INCLUDE_ONCE) {
-				zend_message_dispatcher(ZMSG_FAILED_INCLUDE_FOPEN, Z_STRVAL_P(inc_filename) TSRMLS_CC);
-			} else {
-				zend_message_dispatcher(ZMSG_FAILED_REQUIRE_FOPEN, Z_STRVAL_P(inc_filename) TSRMLS_CC);
-			}
+			zend_message_dispatcher(ZMSG_FAILED_INCLUDE_FOPEN, Z_STRVAL_P(inc_filename) TSRMLS_CC);
 		}
 		if (resolved_path != Z_STRVAL_P(inc_filename)) {
 			efree(resolved_path);
+		}
+
+		if (EXPECTED(new_op_array != NULL)) {
+			zend_op_array *origin_op_array = EG(active_op_array);
+			EG(active_op_array) = new_op_array;
+
+			if (!EG(active_symbol_table)) {
+				zend_rebuild_symbol_table(TSRMLS_C);
+			}
+
+			zend_execute(new_op_array TSRMLS_CC);
+
+			EG(active_op_array) = origin_op_array;
+			destroy_op_array(new_op_array TSRMLS_CC);
+			efree(new_op_array);
 		}
 	}
 	*/
