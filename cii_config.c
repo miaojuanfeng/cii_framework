@@ -15,7 +15,7 @@ PHP_METHOD(cii_config, __construct)
 	/*
 	* 	init cii_config::config
 	*/
-	zval *config = cii_get_config();
+	zval *config = CII_G(configs);
 	/*
 	*	 we will use zend_update_property() or add_property_zval_ex() function to update class property.
 	* 	these function will separate zval when zval's is_ref__gc is true.
@@ -33,7 +33,7 @@ PHP_METHOD(cii_config, __construct)
 	*/
 	zval **base_url_value;
 	if( zend_hash_find(Z_ARRVAL_P(config), "base_url", sizeof("base_url"), (void**)&base_url_value) == FAILURE ||
-		Z_TYPE_PP(base_url_value) == IS_STRING && Z_STRLEN_PP(base_url_value) == 0 ){
+		(Z_TYPE_PP(base_url_value) == IS_STRING && Z_STRLEN_PP(base_url_value) == 0) ){
 		zval *server = PG(http_globals)[TRACK_VARS_SERVER];
 		zval **http_host;
 		zval **script_name;
@@ -45,11 +45,11 @@ PHP_METHOD(cii_config, __construct)
 			p = strrchr(Z_STRVAL_PP(script_name), '/')+1;
 			orig = *p;
 			*p = '\0';
-			if( !cii_is_https() ){
+			//if( !cii_is_https() ){
 				is_https = "http://";
-			}else{
-				is_https = "https://";
-			}
+			//}else{
+			//	is_https = "https://";
+			//}
 			spprintf(&base_url_string, 0, "%s%s%s", is_https, Z_STRVAL_PP(http_host), Z_STRVAL_PP(script_name));
 			*p = orig;
 			ZVAL_STRING(base_url, base_url_string, 0);
@@ -61,7 +61,7 @@ PHP_METHOD(cii_config, __construct)
 	/*
 	* output log
 	*/
-	cii_write_log(3, "Config Class Initialized");
+	// cii_write_log(3, "Config Class Initialized");
 }
 /*
 *	cii_config_item
@@ -69,7 +69,7 @@ PHP_METHOD(cii_config, __construct)
 ZEND_API zval* cii_config_item(char *item, uint item_len, char *index, uint index_len)
 {
 	zval **value;
-	zval *config = cii_get_config();
+	zval *config = CII_G(configs);
 	if( !index ){
 		if( zend_hash_find(Z_ARRVAL_P(config), item, item_len+1, (void**)&value) == FAILURE ){
 			return NULL;
@@ -108,7 +108,8 @@ PHP_METHOD(cii_config, item)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &item, &item_len, &index, &index_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	if( retval = cii_config_item(item, item_len, index, index_len) ){
+	retval = cii_config_item(item, item_len, index, index_len);
+	if( retval ){
 		RETURN_ZVAL(retval, 1, 0);
 	}
 }
@@ -119,7 +120,8 @@ ZEND_API char* cii_config_slash_item(char *item, uint item_len, char *index, uin
 {
 	zval *retval;
 	*need_free = 0;
-	if( retval = cii_config_item(item, item_len, index, index_len) ){
+	retval = cii_config_item(item, item_len, index, index_len);
+	if( retval ){
 		if( Z_TYPE_P(retval) != IS_STRING ){
 			convert_to_string(retval);
 		}
@@ -391,7 +393,7 @@ PHP_METHOD(cii_config, set_item)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz", &item, &item_len, &value) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *config = cii_get_config();
+	zval *config = CII_G(configs);
 	value_ptr = &value;
 	CII_IF_ISREF_THEN_SEPARATE_ELSE_ADDREF(value_ptr);	
 	zend_hash_update(Z_ARRVAL_P(config), item, item_len+1, value_ptr, sizeof(zval *), NULL);
@@ -418,4 +420,6 @@ PHP_MINIT_FUNCTION(cii_config)
 	 * @var	array
 	 */
 	zend_declare_property_null(cii_config_ce, ZEND_STRL("config"), ZEND_ACC_PUBLIC TSRMLS_CC); 
+
+	return SUCCESS;
 }

@@ -65,7 +65,7 @@ PHP_METHOD(cii_loader, __get)
 *
 * public function view($view, $vars = array(), $return = FALSE)
 */
-PHP_METHOD(cii_loader, view){
+PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提示
 	char *view;
 	uint view_len;
 	HashTable *data = NULL;
@@ -105,11 +105,13 @@ PHP_METHOD(cii_loader, view){
 	}else{
 		file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(views_path), view);
 	}
-
-	if(zend_hash_exists(&EG(included_files), file, file_len + 1)){
-		efree(file);
-		RETURN_ZVAL(getThis(), 1, 0);
-	}
+	/*
+	*	注释掉下面的，可以多次重复载入同一个控制器
+	*/
+	// if(zend_hash_exists(&EG(included_files), file, file_len + 1)){
+	// 	efree(file);
+	// 	RETURN_ZVAL(getThis(), 1, 0);
+	// }
 
 	/*if (EG(active_symbol_table)) {
 		zend_rebuild_symbol_table(TSRMLS_C);
@@ -144,6 +146,7 @@ PHP_METHOD(cii_loader, view){
 			zend_hash_update(CII_G(view_symbol_table), key, key_len, value, sizeof(zval *), NULL);
 		}
 	}
+	CII_G(view_symbol_level)++;
 	EG(active_symbol_table) = CII_G(view_symbol_table);
 
 	if(php_output_start_user(NULL, 0, PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == SUCCESS){
@@ -157,9 +160,9 @@ PHP_METHOD(cii_loader, view){
 			//
 			MAKE_STD_ZVAL(output);
 			php_output_get_contents(output TSRMLS_CC);
-			// cii_append_output(cii_output_ce, output_obj, Z_STRVAL_P(output));
+			cii_append_output(cii_output_ce, CII_G(output_obj), Z_STRVAL_P(output));
 			zval_ptr_dtor(&output);
-			// php_output_discard(TSRMLS_C);
+			php_output_discard(TSRMLS_C);
 		}
 	}else{
 		php_error(E_WARNING, "failed to create buffer");
@@ -170,6 +173,11 @@ PHP_METHOD(cii_loader, view){
 	// zend_hash_destroy(EG(active_symbol_table));
  	// FREE_HASHTABLE(EG(active_symbol_table));
     EG(active_symbol_table) = old_active_symbol_table;
+    CII_G(view_symbol_level)--;
+    if( !CII_G(view_symbol_level) ){
+    	// php_printf("view_symbol_level: %d", CII_G(view_symbol_level));
+    	zend_hash_clean(CII_G(view_symbol_table));
+    }
 
 	if(!is_return){
 		RETURN_ZVAL(getThis(), 1, 0);

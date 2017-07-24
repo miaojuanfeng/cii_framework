@@ -38,10 +38,10 @@ PHP_METHOD(cii_uri, __construct)
 	}
 	server = PG(http_globals)[TRACK_VARS_SERVER];
 
-zval *test;
-MAKE_STD_ZVAL(test);
-ZVAL_STRING(test, "announcements/index", 1);
-zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, sizeof(zval *), NULL);
+// zval *test;
+// MAKE_STD_ZVAL(test);
+// ZVAL_STRING(test, "home/aa", 1);
+// zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, sizeof(zval *), NULL);
 
 	uint dir_i = 0;
 

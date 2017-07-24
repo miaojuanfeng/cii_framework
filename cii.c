@@ -31,13 +31,14 @@
 
 #include "cii_uri.c"
 #include "cii_router.c"
+#include "cii_config.c"
+#include "cii_benchmark.c"
 #include "cii_output.c"
 #include "cii_database.c"
 #include "cii_pagination.c"
 #include "cii_input.c"
 // 看看能不能动态加载
 #include "cii_session.c"
-#include "cii_benchmark.c"
 #include "cii_lang.c"
 #include "cii_loader.c"
 
@@ -84,7 +85,7 @@ static char* cii_get_apppath()
 }
 
 CII_API int cii_loader_import(char *path, int len, int use_path TSRMLS_DC) {
-	zend_file_handle file_handle;
+	/*zend_file_handle file_handle;
 	zend_op_array 	*op_array;
 	char realpath[MAXPATHLEN];
 
@@ -137,25 +138,19 @@ CII_API int cii_loader_import(char *path, int len, int use_path TSRMLS_DC) {
 
 	    return 1;
 	}
-	return 0;
+	return 0;*/
 
-	/* require_once/include_once
+	/* require_once/include_once */
 	{
-		zval *inc_filename;
-
-		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &inc_filename) == FAILURE) {
-			return;
-		}
-
 		zend_file_handle file_handle;
 		char *resolved_path;
 		zend_op_array *new_op_array=NULL;
 		zend_bool failure_retval = 0;
-		resolved_path = zend_resolve_path(Z_STRVAL_P(inc_filename), Z_STRLEN_P(inc_filename) TSRMLS_CC);
+		resolved_path = zend_resolve_path(path, len TSRMLS_CC);
 		if (resolved_path) {
 			failure_retval = zend_hash_exists(&EG(included_files), resolved_path, strlen(resolved_path)+1);
 		} else {
-			resolved_path = Z_STRVAL_P(inc_filename);
+			resolved_path = path;
 		}
 		if (failure_retval) {
 			// do nothing, file already included
@@ -171,9 +166,9 @@ CII_API int cii_loader_import(char *path, int len, int use_path TSRMLS_DC) {
 				failure_retval=1;
 			}
 		} else {
-			zend_message_dispatcher(ZMSG_FAILED_INCLUDE_FOPEN, Z_STRVAL_P(inc_filename) TSRMLS_CC);
+			zend_message_dispatcher(ZMSG_FAILED_INCLUDE_FOPEN, path TSRMLS_CC);
 		}
-		if (resolved_path != Z_STRVAL_P(inc_filename)) {
+		if (resolved_path != path) {
 			efree(resolved_path);
 		}
 
@@ -192,7 +187,8 @@ CII_API int cii_loader_import(char *path, int len, int use_path TSRMLS_DC) {
 			efree(new_op_array);
 		}
 	}
-	*/
+	/* */
+	return 1;
 }
 
 static void cii_init_configs(){
@@ -220,6 +216,8 @@ static void cii_init_configs(){
 	//
 	ALLOC_HASHTABLE(CII_G(view_symbol_table));
     zend_hash_init(CII_G(view_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
+    //
+    CII_G(view_symbol_level) = 0;
 }
 
 PHP_FUNCTION(cii_run)
@@ -368,6 +366,16 @@ PHP_FUNCTION(cii_run)
 		zend_update_property(cii_router_ce, CII_G(router_obj), ZEND_STRL("method"), *method TSRMLS_CC);
 	}
 	/*
+	* load CII_Config object -- this object should be first one, or will get segment fault
+	*/
+	MAKE_STD_ZVAL(CII_G(config_obj));
+	object_init_ex(CII_G(config_obj), cii_config_ce);
+	if (zend_hash_exists(&cii_config_ce->function_table, "__construct", 12)) {
+		zval *cii_config_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(config_obj), "__construct", &cii_config_retval, 0, NULL);
+		zval_ptr_dtor(&cii_config_retval);
+	}
+	/*
 	* load CII_Loader object -- this object should be first one, or will get segment fault
 	*/
 	MAKE_STD_ZVAL(CII_G(loader_obj));
@@ -503,7 +511,7 @@ PHP_FUNCTION(cii_run)
 	/*
 	*	注入CII内核类对象实例到活动控制器成员变量中
 	*/
-	zend_update_property(*run_class_ce, CII_G(controller_obj), "config", 6, CII_G(configs) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "config", 6, CII_G(config_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
@@ -557,7 +565,10 @@ PHP_FUNCTION(cii_run)
 	zval_ptr_dtor(&CII_G(configs));
 	zval_ptr_dtor(&CII_G(uri_obj));
 	zval_ptr_dtor(&CII_G(router_obj));
-	zval_ptr_dtor(&CII_G(loader_obj));
+	/*
+	* 	加上下面这句在控制器方法为空语句时会segment fault。先不释放
+	*/
+	// zval_ptr_dtor(&CII_G(loader_obj));
 	zval_ptr_dtor(&CII_G(output_obj));
 	zval_ptr_dtor(&CII_G(input_obj));
 	zval_ptr_dtor(&CII_G(session_obj));
@@ -566,6 +577,19 @@ PHP_FUNCTION(cii_run)
 	zval_ptr_dtor(&CII_G(lang_obj));
 	zend_hash_destroy(CII_G(view_symbol_table));
  	FREE_HASHTABLE(CII_G(view_symbol_table));
+ 	/*
+	*  Send the final rendered output to the browser
+	*/
+	char *output_new;
+	uint output_new_len;
+	char retval;
+	zval *output = zend_read_property(cii_output_ce, CII_G(output_obj), "final_output", 12, 1 TSRMLS_CC);
+	retval = cii_display(Z_STRVAL_P(output), Z_STRLEN_P(output), &output_new, &output_new_len TSRMLS_CC);
+	PHPWRITE(output_new, output_new_len);
+	if( retval ){
+		efree(output_new);
+	}
+
 	RETURN_ZVAL(CII_G(controller_obj), 0, 1);
 }
 /* }}} */
@@ -673,6 +697,7 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_uri)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_router)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_loader)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_config)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_input)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_database)(INIT_FUNC_ARGS_PASSTHRU);

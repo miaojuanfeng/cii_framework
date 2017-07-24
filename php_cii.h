@@ -52,6 +52,7 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
     zval *loader_obj;
     zval *output_obj;
     zval *input_obj;
+    zval *config_obj;
     //
     zval *session_obj;
     zval *benchmark_obj;
@@ -68,6 +69,7 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
     zend_class_entry *instance_ce;
     zval *instance_obj;
     HashTable *view_symbol_table;
+    zend_uint view_symbol_level;
 ZEND_END_MODULE_GLOBALS(cii)
 
 #define CII_API ZEND_API
