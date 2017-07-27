@@ -31,32 +31,59 @@ PHP_METHOD(cii_config, __construct)
 	/*
 	* 	set default base_url
 	*/
-	zval **base_url_value;
-	if( zend_hash_find(Z_ARRVAL_P(config), "base_url", sizeof("base_url"), (void**)&base_url_value) == FAILURE ||
-		(Z_TYPE_PP(base_url_value) == IS_STRING && Z_STRLEN_PP(base_url_value) == 0) ){
-		zval *server = PG(http_globals)[TRACK_VARS_SERVER];
-		zval **http_host;
-		zval **script_name;
-		zval *base_url;
-		MAKE_STD_ZVAL(base_url);
-		if( zend_hash_find(Z_ARRVAL_P(server), "HTTP_HOST", sizeof("HTTP_HOST"), (void**)&http_host) != FAILURE &&
-			zend_hash_find(Z_ARRVAL_P(server), "SCRIPT_NAME", sizeof("SCRIPT_NAME"), (void**)&script_name) != FAILURE ){
-			char *base_url_string, orig, *p, *is_https;
-			p = strrchr(Z_STRVAL_PP(script_name), '/')+1;
-			orig = *p;
-			*p = '\0';
-			//if( !cii_is_https() ){
-				is_https = "http://";
-			//}else{
-			//	is_https = "https://";
-			//}
-			spprintf(&base_url_string, 0, "%s%s%s", is_https, Z_STRVAL_PP(http_host), Z_STRVAL_PP(script_name));
-			*p = orig;
-			ZVAL_STRING(base_url, base_url_string, 0);
-		}else{
-			ZVAL_STRING(base_url, "http://localhost/", 1);
+	// zval **base_url_value;
+	// if( zend_hash_find(Z_ARRVAL_P(config), "base_url", sizeof("base_url"), (void**)&base_url_value) == FAILURE ||
+	// 	(Z_TYPE_PP(base_url_value) == IS_STRING && Z_STRLEN_PP(base_url_value) == 0) ){
+	// 	zval *server = PG(http_globals)[TRACK_VARS_SERVER];
+	// 	zval **http_host;
+	// 	zval **script_name;
+	// 	zval *base_url;
+	// 	MAKE_STD_ZVAL(base_url);
+	// 	if( zend_hash_find(Z_ARRVAL_P(server), "HTTP_HOST", sizeof("HTTP_HOST"), (void**)&http_host) != FAILURE &&
+	// 		zend_hash_find(Z_ARRVAL_P(server), "SCRIPT_NAME", sizeof("SCRIPT_NAME"), (void**)&script_name) != FAILURE ){
+	// 		char *base_url_string, orig, *p, *is_https;
+	// 		p = strrchr(Z_STRVAL_PP(script_name), '/')+1;
+	// 		orig = *p;
+	// 		*p = '\0';
+	// 		//if( !cii_is_https() ){
+	// 			is_https = "http://";
+	// 		//}else{
+	// 		//	is_https = "https://";
+	// 		//}
+	// 		spprintf(&base_url_string, 0, "%s%s%s", is_https, Z_STRVAL_PP(http_host), Z_STRVAL_PP(script_name));
+	// 		*p = orig;
+	// 		ZVAL_STRING(base_url, base_url_string, 0);
+	// 	}else{
+	// 		ZVAL_STRING(base_url, "http://localhost/", 1);
+	// 	}
+	// 	zend_hash_update(Z_ARRVAL_P(config), "base_url", 9, &base_url, sizeof(zval *), NULL);
+	// }
+	zval **base_url;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
+		zval *server;
+		zval **server_name;
+		zval **server_port;
+		zval *init_base_url;
+		// 这里要初始化一下，不然得不到$_SERVER
+		if (PG(auto_globals_jit)) {
+			zend_is_auto_global("_SERVER", sizeof("_SERVER")-1);
 		}
-		zend_hash_update(Z_ARRVAL_P(config), "base_url", 9, &base_url, sizeof(zval *), NULL);
+		server = PG(http_globals)[TRACK_VARS_SERVER];
+
+		if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_NAME", sizeof("SERVER_NAME"), (void**)&server_name) && Z_TYPE_PP(server_name) == IS_STRING ){
+			char *server_name_port;
+			if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_PORT", sizeof("SERVER_PORT"), (void**)&server_port) && Z_TYPE_PP(server_port) == IS_STRING ){
+				spprintf(&server_name_port, 0, "http://%s:%s", Z_STRVAL_PP(server_name), Z_STRVAL_PP(server_port));
+			}else{
+				spprintf(&server_name_port, 0, "http://%s", Z_STRVAL_PP(server_name));
+			}
+			MAKE_STD_ZVAL(init_base_url);
+			ZVAL_STRING(init_base_url, server_name_port, 0);
+		}else{
+			MAKE_STD_ZVAL(init_base_url);
+			ZVAL_EMPTY_STRING(init_base_url);
+		}
+		zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, &init_base_url, sizeof(zval *), NULL);
 	}
 	/*
 	* output log
