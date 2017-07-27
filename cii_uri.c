@@ -154,7 +154,8 @@ PHP_METHOD(cii_uri, __construct)
 	// }
 	char *dir = NULL;
 	zval **dir_seg;
-	for(uint j=1;j<=dir_i;j++){
+	uint j=1;
+	for(j=1;j<=dir_i;j++){
 		char *p = dir;
 		if( zend_hash_index_find(Z_ARRVAL_P(segments), j, (void**)&dir_seg) != FAILURE && Z_TYPE_PP(dir_seg) == IS_STRING && Z_STRLEN_PP(dir_seg) != 0){
 			if( dir ){

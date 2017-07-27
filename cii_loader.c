@@ -146,23 +146,32 @@ PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提
 			zend_hash_update(CII_G(view_symbol_table), key, key_len, value, sizeof(zval *), NULL);
 		}
 	}
+	/*
+	*	增加视图符号表递归深度
+	*/
 	CII_G(view_symbol_level)++;
 	EG(active_symbol_table) = CII_G(view_symbol_table);
 
 	if(php_output_start_user(NULL, 0, PHP_OUTPUT_HANDLER_STDFLAGS TSRMLS_CC) == SUCCESS){
-		if(is_return){	
-			cii_loader_import(file, file_len, 0 TSRMLS_CC);
+		if(is_return){
+			/*
+			*	传递参数1开启include模式，默认为include_once模式
+			*/
+			cii_loader_import(file, file_len, 1 TSRMLS_CC);
 			php_output_get_contents(return_value TSRMLS_CC);
 			php_output_discard(TSRMLS_C);
 		}else{
-			zval *output;
-			cii_loader_import(file, file_len, 0 TSRMLS_CC);
+			// zval *output;
+			/*
+			*	传递参数1开启include模式，默认为include_once模式
+			*/
+			cii_loader_import(file, file_len, 1 TSRMLS_CC);
 			//
-			MAKE_STD_ZVAL(output);
-			php_output_get_contents(output TSRMLS_CC);
-			cii_append_output(cii_output_ce, CII_G(output_obj), Z_STRVAL_P(output));
-			zval_ptr_dtor(&output);
-			php_output_discard(TSRMLS_C);
+			// MAKE_STD_ZVAL(output);
+			// php_output_get_contents(output TSRMLS_CC);
+			// cii_append_output(cii_output_ce, CII_G(output_obj), Z_STRVAL_P(output));
+			// zval_ptr_dtor(&output);
+			// php_output_discard(TSRMLS_C);
 		}
 	}else{
 		php_error(E_WARNING, "failed to create buffer");
@@ -173,6 +182,9 @@ PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提
 	// zend_hash_destroy(EG(active_symbol_table));
  	// FREE_HASHTABLE(EG(active_symbol_table));
     EG(active_symbol_table) = old_active_symbol_table;
+    /*
+	*	减少视图符号表递归深度
+	*/
     CII_G(view_symbol_level)--;
     if( !CII_G(view_symbol_level) ){
     	// php_printf("view_symbol_level: %d", CII_G(view_symbol_level));
@@ -180,7 +192,7 @@ PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提
     }
 
 	if(!is_return){
-		RETURN_ZVAL(getThis(), 1, 0);
+		RETURN_TRUE;
 	}
 }
 
@@ -493,54 +505,54 @@ PHP_METHOD(cii_loader, library){
 */
 PHP_METHOD(cii_loader, database)
 {
-	zval *database_obj;
-	zval **hostname;
-	zval **username;
-	zval **password;
-	zval **database;
-	zval **params[4];
+	// zval *database_obj;
+	// zval **hostname;
+	// zval **username;
+	// zval **password;
+	// zval **database;
+	// zval **params[4];
 
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "hostname", 9, (void**)&hostname) == FAILURE ||
-		Z_TYPE_PP(hostname) != IS_STRING || Z_STRLEN_PP(hostname) == 0 ){
-		php_error(E_ERROR, "Your database config 'hostname' does not appear to be formatted correctly.");
-	}
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "username", 9, (void**)&username) == FAILURE ||
-		Z_TYPE_PP(username) != IS_STRING || Z_STRLEN_PP(username) == 0 ){
-		php_error(E_ERROR, "Your database config 'username' does not appear to be formatted correctly.");
-	}
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "password", 9, (void**)&password) == FAILURE ){
-		php_error(E_ERROR, "Your database config 'password' does not appear to be formatted correctly.");
-	}
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "database", 9, (void**)&database) == FAILURE ||
-		Z_TYPE_PP(database) != IS_STRING || Z_STRLEN_PP(database) == 0 ){
-		php_error(E_ERROR, "Your database config 'database' does not appear to be formatted correctly.");
-	}
+	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "hostname", 9, (void**)&hostname) == FAILURE ||
+	// 	Z_TYPE_PP(hostname) != IS_STRING || Z_STRLEN_PP(hostname) == 0 ){
+	// 	php_error(E_ERROR, "Your database config 'hostname' does not appear to be formatted correctly.");
+	// }
+	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "username", 9, (void**)&username) == FAILURE ||
+	// 	Z_TYPE_PP(username) != IS_STRING || Z_STRLEN_PP(username) == 0 ){
+	// 	php_error(E_ERROR, "Your database config 'username' does not appear to be formatted correctly.");
+	// }
+	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "password", 9, (void**)&password) == FAILURE ){
+	// 	php_error(E_ERROR, "Your database config 'password' does not appear to be formatted correctly.");
+	// }
+	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "database", 9, (void**)&database) == FAILURE ||
+	// 	Z_TYPE_PP(database) != IS_STRING || Z_STRLEN_PP(database) == 0 ){
+	// 	php_error(E_ERROR, "Your database config 'database' does not appear to be formatted correctly.");
+	// }
 
-	params[0] = hostname;
-	params[1] = username;
-	params[2] = password;
-	params[3] = database;
+	// params[0] = hostname;
+	// params[1] = username;
+	// params[2] = password;
+	// params[3] = database;
 
-	MAKE_STD_ZVAL(database_obj);
-	object_init_ex(database_obj, cii_database_ce);
-	if (zend_hash_exists(&cii_database_ce->function_table, "__construct", 12)) {
-		zval *cii_output_retval;
-		CII_CALL_USER_METHOD_EX(&database_obj, "__construct", &cii_output_retval, 4, params);
-		zval_ptr_dtor(&cii_output_retval);
-	}
-	/*
-	*	do for $this->db->...
-	*/
-	zend_update_property(cii_loader_ce, getThis(), "db", 2, database_obj TSRMLS_CC);
-	/*
-	*	do for $this->db->...
-	*/
-	if( CII_G(instance_obj) && CII_G(instance_ce) ){
-		zend_update_property(CII_G(instance_ce), CII_G(instance_obj), "db", 2, database_obj TSRMLS_CC);
-	}
+	// MAKE_STD_ZVAL(database_obj);
+	// object_init_ex(database_obj, cii_database_ce);
+	// if (zend_hash_exists(&cii_database_ce->function_table, "__construct", 12)) {
+	// 	zval *cii_output_retval;
+	// 	CII_CALL_USER_METHOD_EX(&database_obj, "__construct", &cii_output_retval, 4, params);
+	// 	zval_ptr_dtor(&cii_output_retval);
+	// }
+	// /*
+	// *	do for $this->db->...
+	// */
+	// zend_update_property(cii_loader_ce, getThis(), "db", 2, database_obj TSRMLS_CC);
+	// /*
+	// *	do for $this->db->...
+	// */
+	// if( CII_G(instance_obj) && CII_G(instance_ce) ){
+	// 	zend_update_property(CII_G(instance_ce), CII_G(instance_obj), "db", 2, database_obj TSRMLS_CC);
+	// }
 	
-	zval_ptr_dtor(&database_obj);
-	RETURN_TRUE;
+	// zval_ptr_dtor(&database_obj);
+	// RETURN_TRUE;
 }
 
 PHP_METHOD(cii_loader, language){
@@ -549,7 +561,11 @@ PHP_METHOD(cii_loader, language){
 
 zend_function_entry cii_loader_methods[] = {
 	PHP_ME(cii_loader, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-	PHP_ME(cii_loader, __get, NULL, ZEND_ACC_PUBLIC)
+	/*
+	*	需要制定参数类型，不然会得到一个警告
+	*	Warning: Method CII_Loader::__get() must take exactly 1 argument in Unknown on line 0
+	*/
+	PHP_ME(cii_loader, __get, cii_loader___get_arginfo, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, view, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, model, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, helper, NULL, ZEND_ACC_PUBLIC)
