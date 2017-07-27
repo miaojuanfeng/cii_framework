@@ -585,18 +585,6 @@ PHP_MINIT_FUNCTION(cii_loader)
 	zend_class_entry ce;
 	INIT_CLASS_ENTRY(ce, "CII_Loader", cii_loader_methods);
 	cii_loader_ce = zend_register_internal_class(&ce TSRMLS_CC);
-	/**
-	 * Current class name
-	 *
-	 * @var	string
-	 */
-	zend_declare_property_null(cii_loader_ce, ZEND_STRL("class"), ZEND_ACC_PUBLIC TSRMLS_CC);
-	/**
-	 * Current method name
-	 *
-	 * @var	string
-	 */
-	zend_declare_property_null(cii_loader_ce, ZEND_STRL("method"), ZEND_ACC_PUBLIC TSRMLS_CC);
 
 	return SUCCESS;
 }

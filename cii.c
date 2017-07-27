@@ -30,7 +30,7 @@
 #include "../standard/php_string.h"
 
 #include "cii_uri.c"
-// #include "cii_router.c"
+#include "cii_router.c"
 // #include "cii_config.c"
 // #include "cii_benchmark.c"
 // #include "cii_output.c"
@@ -361,13 +361,13 @@ PHP_FUNCTION(cii_run)
 	/*
 	* load CII_Router object - 一调用__construct就会挂 - Bug
 	*/
-	// MAKE_STD_ZVAL(CII_G(router_obj));
-	// object_init_ex(CII_G(router_obj), cii_router_ce);
-	// if (zend_hash_exists(&cii_router_ce->function_table, "__construct", 12)) {
-	// 	zval *cii_router_retval;
-	// 	CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
-	// 	zval_ptr_dtor(&cii_router_retval);
-	// }
+	MAKE_STD_ZVAL(CII_G(router_obj));
+	object_init_ex(CII_G(router_obj), cii_router_ce);
+	if (zend_hash_exists(&cii_router_ce->function_table, "__construct", 12)) {
+		zval *cii_router_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
+		zval_ptr_dtor(&cii_router_retval);
+	}
 	// zval *rseg = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 	// zval **class, **method;
  //    if( zend_hash_index_find(Z_ARRVAL_P(rseg), 1, (void**)&class) != FAILURE ){
@@ -524,7 +524,7 @@ PHP_FUNCTION(cii_run)
 	*/
 	// zend_update_property(*run_class_ce, CII_G(controller_obj), "config", 6, CII_G(config_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
 	// zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
 	// zend_update_property(*run_class_ce, CII_G(controller_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
@@ -576,10 +576,7 @@ PHP_FUNCTION(cii_run)
 	efree(CII_G(app_path));
 	zval_ptr_dtor(&CII_G(configs));
 	zval_ptr_dtor(&CII_G(uri_obj));
-	// zval_ptr_dtor(&CII_G(router_obj));
-	/*
-	* 	加上下面这句在控制器方法为空语句时会segment fault。先不释放
-	*/
+	zval_ptr_dtor(&CII_G(router_obj));
 	zval_ptr_dtor(&CII_G(loader_obj));
 	// zval_ptr_dtor(&CII_G(output_obj));
 	// zval_ptr_dtor(&CII_G(input_obj));
@@ -707,7 +704,7 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_INIT_MODULE_GLOBALS(cii, php_cii_globals_ctor, php_cii_globals_dtor);
 	//
 	ZEND_MINIT(cii_uri)(INIT_FUNC_ARGS_PASSTHRU);
-	// ZEND_MINIT(cii_router)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_router)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_loader)(INIT_FUNC_ARGS_PASSTHRU);
 	// ZEND_MINIT(cii_config)(INIT_FUNC_ARGS_PASSTHRU);
 	// ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
