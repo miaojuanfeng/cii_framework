@@ -2,6 +2,15 @@
 
 zend_class_entry *cii_session_ce;
 
+ZEND_BEGIN_ARG_INFO_EX(cii_session___get_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(cii_session___set_arginfo, 0, 0, 1)
+	ZEND_ARG_INFO(0, key)
+	ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+
 /**
 *	Class constructor
 *
@@ -24,20 +33,23 @@ PHP_METHOD(cii_session, __construct)
 	*	fetch session
 	*/
 	zval **session;
+	zval *init_session;
 	if( zend_hash_find(&EG(symbol_table), "_SESSION", 9, (void**)&session) == FAILURE ){
-		MAKE_STD_ZVAL(*session);
-		array_init(*session);
+		MAKE_STD_ZVAL(init_session);
+		array_init(init_session);
 		free_session = 1;
+	}else{
+		init_session = *session;
 	}
 	/*
 	*	update session property
 	*/
-	Z_UNSET_ISREF_P(*session);
-	zend_update_property(cii_session_ce, getThis(), ZEND_STRL("session"), *session TSRMLS_CC);
-	Z_SET_ISREF_P(*session);
+	Z_UNSET_ISREF_P(init_session);
+	zend_update_property(cii_session_ce, getThis(), ZEND_STRL("session"), init_session TSRMLS_CC);
+	Z_SET_ISREF_P(init_session);
 
 	if(free_session){
-		zval_ptr_dtor(session);
+		zval_ptr_dtor(&init_session);
 	}
 }
 
@@ -179,8 +191,8 @@ PHP_METHOD(cii_session, unset_userdata)
 
 zend_function_entry cii_session_methods[] = {
 	PHP_ME(cii_session, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-	PHP_ME(cii_session, __get, NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(cii_session, __set, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_session, __get, cii_session___get_arginfo, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_session, __set, cii_session___set_arginfo, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, set_tempdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, tempdata, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_session, set_userdata, NULL, ZEND_ACC_PUBLIC)
