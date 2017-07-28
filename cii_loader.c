@@ -245,7 +245,7 @@ PHP_METHOD(cii_loader, model){
 	*	is already included
 	*/
 	if (zend_hash_exists(&EG(included_files), file, file_len + 1)){
-		efree(file);
+		// efree(file);
 	}
 	/*
 	*	include file
@@ -285,7 +285,8 @@ PHP_METHOD(cii_loader, model){
 			name_len = model_len;
 		}
 	}
-	if( zend_hash_find(CG(class_table), name_lower, name_len+1, (void**)&ce) == SUCCESS ){
+
+	if( zend_hash_find(CG(class_table), name, name_len+1, (void**)&ce) == SUCCESS ){
 		/*
 		*	new ce object
 		*/
@@ -505,54 +506,54 @@ PHP_METHOD(cii_loader, library){
 */
 PHP_METHOD(cii_loader, database)
 {
-	// zval *database_obj;
-	// zval **hostname;
-	// zval **username;
-	// zval **password;
-	// zval **database;
-	// zval **params[4];
+	zval *database_obj;
+	zval **hostname;
+	zval **username;
+	zval **password;
+	zval **database;
+	zval **params[4];
 
-	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "hostname", 9, (void**)&hostname) == FAILURE ||
-	// 	Z_TYPE_PP(hostname) != IS_STRING || Z_STRLEN_PP(hostname) == 0 ){
-	// 	php_error(E_ERROR, "Your database config 'hostname' does not appear to be formatted correctly.");
-	// }
-	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "username", 9, (void**)&username) == FAILURE ||
-	// 	Z_TYPE_PP(username) != IS_STRING || Z_STRLEN_PP(username) == 0 ){
-	// 	php_error(E_ERROR, "Your database config 'username' does not appear to be formatted correctly.");
-	// }
-	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "password", 9, (void**)&password) == FAILURE ){
-	// 	php_error(E_ERROR, "Your database config 'password' does not appear to be formatted correctly.");
-	// }
-	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "database", 9, (void**)&database) == FAILURE ||
-	// 	Z_TYPE_PP(database) != IS_STRING || Z_STRLEN_PP(database) == 0 ){
-	// 	php_error(E_ERROR, "Your database config 'database' does not appear to be formatted correctly.");
-	// }
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "hostname", 9, (void**)&hostname) == FAILURE ||
+		Z_TYPE_PP(hostname) != IS_STRING || Z_STRLEN_PP(hostname) == 0 ){
+		php_error(E_ERROR, "Your database config 'hostname' does not appear to be formatted correctly.");
+	}
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "username", 9, (void**)&username) == FAILURE ||
+		Z_TYPE_PP(username) != IS_STRING || Z_STRLEN_PP(username) == 0 ){
+		php_error(E_ERROR, "Your database config 'username' does not appear to be formatted correctly.");
+	}
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "password", 9, (void**)&password) == FAILURE ){
+		php_error(E_ERROR, "Your database config 'password' does not appear to be formatted correctly.");
+	}
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "database", 9, (void**)&database) == FAILURE ||
+		Z_TYPE_PP(database) != IS_STRING || Z_STRLEN_PP(database) == 0 ){
+		php_error(E_ERROR, "Your database config 'database' does not appear to be formatted correctly.");
+	}
 
-	// params[0] = hostname;
-	// params[1] = username;
-	// params[2] = password;
-	// params[3] = database;
+	params[0] = hostname;
+	params[1] = username;
+	params[2] = password;
+	params[3] = database;
 
-	// MAKE_STD_ZVAL(database_obj);
-	// object_init_ex(database_obj, cii_database_ce);
-	// if (zend_hash_exists(&cii_database_ce->function_table, "__construct", 12)) {
-	// 	zval *cii_output_retval;
-	// 	CII_CALL_USER_METHOD_EX(&database_obj, "__construct", &cii_output_retval, 4, params);
-	// 	zval_ptr_dtor(&cii_output_retval);
-	// }
-	// /*
-	// *	do for $this->db->...
-	// */
-	// zend_update_property(cii_loader_ce, getThis(), "db", 2, database_obj TSRMLS_CC);
-	// /*
-	// *	do for $this->db->...
-	// */
-	// if( CII_G(instance_obj) && CII_G(instance_ce) ){
-	// 	zend_update_property(CII_G(instance_ce), CII_G(instance_obj), "db", 2, database_obj TSRMLS_CC);
-	// }
+	MAKE_STD_ZVAL(database_obj);
+	object_init_ex(database_obj, cii_database_ce);
+	if (zend_hash_exists(&cii_database_ce->function_table, "__construct", 12)) {
+		zval *cii_output_retval;
+		CII_CALL_USER_METHOD_EX(&database_obj, "__construct", &cii_output_retval, 4, params);
+		zval_ptr_dtor(&cii_output_retval);
+	}
+	/*
+	*	do for $this->db->...
+	*/
+	zend_update_property(cii_loader_ce, getThis(), "db", 2, database_obj TSRMLS_CC);
+	/*
+	*	do for $this->db->...
+	*/
+	if( CII_G(instance_obj) && CII_G(instance_ce) ){
+		zend_update_property(CII_G(instance_ce), CII_G(instance_obj), "db", 2, database_obj TSRMLS_CC);
+	}
 	
-	// zval_ptr_dtor(&database_obj);
-	// RETURN_TRUE;
+	zval_ptr_dtor(&database_obj);
+	RETURN_TRUE;
 }
 
 PHP_METHOD(cii_loader, language){

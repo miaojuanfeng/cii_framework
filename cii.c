@@ -29,6 +29,9 @@
 
 #include "../standard/php_string.h"
 
+
+#include "cii_database.c"
+
 #include "cii_config.c"
 #include "cii_uri.c"
 #include "cii_router.c"
@@ -37,12 +40,13 @@
 #include "cii_session.c"
 #include "cii_benchmark.c"
 // #include "cii_output.c"
-// #include "cii_database.c"
+
 // #include "cii_pagination.c"
 
 // 看看能不能动态加载
 // #include "cii_session.c"
 // #include "cii_lang.c"
+
 
 
 ZEND_DECLARE_MODULE_GLOBALS(cii)
@@ -717,9 +721,10 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_session)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_benchmark)(INIT_FUNC_ARGS_PASSTHRU);
 	// ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
-	// ZEND_MINIT(cii_database)(INIT_FUNC_ARGS_PASSTHRU);
+	
 	// ZEND_MINIT(cii_pagination)(INIT_FUNC_ARGS_PASSTHRU);
 	// ZEND_MINIT(cii_lang)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_database)(INIT_FUNC_ARGS_PASSTHRU);
 	//
 	return SUCCESS;
 }
