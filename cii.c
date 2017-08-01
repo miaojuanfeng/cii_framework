@@ -29,24 +29,17 @@
 
 #include "../standard/php_string.h"
 
-
-#include "cii_database.c"
-
 #include "cii_config.c"
 #include "cii_uri.c"
 #include "cii_router.c"
+#include "cii_database.c"
 #include "cii_loader.c"
 #include "cii_input.c"
 #include "cii_session.c"
 #include "cii_benchmark.c"
-// #include "cii_output.c"
-
-// #include "cii_pagination.c"
-
-// 看看能不能动态加载
-// #include "cii_session.c"
-// #include "cii_lang.c"
-
+#include "cii_lang.c"
+#include "cii_pagination.c"
+#include "cii_output.c"
 
 
 ZEND_DECLARE_MODULE_GLOBALS(cii)
@@ -356,7 +349,7 @@ PHP_FUNCTION(cii_run)
 		php_error(E_ERROR, "Your config parameter does not appear to be formatted correctly.");
 	}
 	/*
-	* load CII_Config object -- this object should be first one, or will get segment fault
+	* load CII_Config object
 	*/
 	MAKE_STD_ZVAL(CII_G(config_obj));
 	object_init_ex(CII_G(config_obj), cii_config_ce);
@@ -385,14 +378,6 @@ PHP_FUNCTION(cii_run)
 		CII_CALL_USER_METHOD_EX(&CII_G(router_obj), "__construct", &cii_router_retval, 0, NULL);
 		zval_ptr_dtor(&cii_router_retval);
 	}
-	// zval *rseg = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
-	// zval **class, **method;
- //    if( zend_hash_index_find(Z_ARRVAL_P(rseg), 1, (void**)&class) != FAILURE ){
-	// 	zend_update_property(cii_router_ce, CII_G(router_obj), ZEND_STRL("class"), *class TSRMLS_CC);
-	// }
-	// if( zend_hash_index_find(Z_ARRVAL_P(rseg), 2, (void**)&method) != FAILURE ){
-	// 	zend_update_property(cii_router_ce, CII_G(router_obj), ZEND_STRL("method"), *method TSRMLS_CC);
-	// }
 	/*
 	* load CII_Loader object
 	*/
@@ -414,7 +399,7 @@ PHP_FUNCTION(cii_run)
 		zval_ptr_dtor(&cii_input_retval);
 	}
 	/*
-	* load CII_Session object -- this object should be first one, or will get segment fault
+	* load CII_Session object
 	*/
 	MAKE_STD_ZVAL(CII_G(session_obj));
 	object_init_ex(CII_G(session_obj), cii_session_ce);
@@ -424,7 +409,7 @@ PHP_FUNCTION(cii_run)
 		zval_ptr_dtor(&cii_session_retval);
 	}
 	/*
-	* load CII_Benchmark object -- this object should be first one, or will get segment fault
+	* load CII_Benchmark object
 	*/
 	MAKE_STD_ZVAL(CII_G(benchmark_obj));
 	object_init_ex(CII_G(benchmark_obj), cii_benchmark_ce);
@@ -434,36 +419,36 @@ PHP_FUNCTION(cii_run)
 		zval_ptr_dtor(&cii_benchmark_retval);
 	}
 	/*
-	* load CII_Output object -- this object should be first one, or will get segment fault
+	* load CII_Lang object
 	*/
-	// MAKE_STD_ZVAL(CII_G(output_obj));
-	// object_init_ex(CII_G(output_obj), cii_output_ce);
-	// if (zend_hash_exists(&cii_output_ce->function_table, "__construct", 12)) {
-	// 	zval *cii_output_retval;
-	// 	CII_CALL_USER_METHOD_EX(&CII_G(output_obj), "__construct", &cii_output_retval, 0, NULL);
-	// 	zval_ptr_dtor(&cii_output_retval);
-	// }
+	MAKE_STD_ZVAL(CII_G(lang_obj));
+	object_init_ex(CII_G(lang_obj), cii_lang_ce);
+	if (zend_hash_exists(&cii_lang_ce->function_table, "__construct", 12)) {
+		zval *cii_lang_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(lang_obj), "__construct", &cii_lang_retval, 0, NULL);
+		zval_ptr_dtor(&cii_lang_retval);
+	}
 	/*
-	* load CII_Pagination object -- this object should be first one, or will get segment fault
+	* load CII_Pagination object
 	*/
-	// MAKE_STD_ZVAL(CII_G(pagination_obj));
-	// object_init_ex(CII_G(pagination_obj), cii_pagination_ce);
-	// if (zend_hash_exists(&cii_pagination_ce->function_table, "__construct", 12)) {
-	// 	zval *cii_pagination_retval;
-	// 	CII_CALL_USER_METHOD_EX(&CII_G(pagination_obj), "__construct", &cii_pagination_retval, 0, NULL);
-	// 	zval_ptr_dtor(&cii_pagination_retval);
-	// }
+	MAKE_STD_ZVAL(CII_G(pagination_obj));
+	object_init_ex(CII_G(pagination_obj), cii_pagination_ce);
+	if (zend_hash_exists(&cii_pagination_ce->function_table, "__construct", 12)) {
+		zval *cii_pagination_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(pagination_obj), "__construct", &cii_pagination_retval, 0, NULL);
+		zval_ptr_dtor(&cii_pagination_retval);
+	}
 	/*
-	* load CII_Lang object -- this object should be first one, or will get segment fault
+	* load CII_Output object
 	*/
-	// MAKE_STD_ZVAL(CII_G(lang_obj));
-	// object_init_ex(CII_G(lang_obj), cii_lang_ce);
-	// if (zend_hash_exists(&cii_lang_ce->function_table, "__construct", 12)) {
-	// 	zval *cii_lang_retval;
-	// 	CII_CALL_USER_METHOD_EX(&CII_G(lang_obj), "__construct", &cii_lang_retval, 0, NULL);
-	// 	zval_ptr_dtor(&cii_lang_retval);
-	// }
-
+	MAKE_STD_ZVAL(CII_G(output_obj));
+	object_init_ex(CII_G(output_obj), cii_output_ce);
+	if (zend_hash_exists(&cii_output_ce->function_table, "__construct", 12)) {
+		zval *cii_output_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(output_obj), "__construct", &cii_output_retval, 0, NULL);
+		zval_ptr_dtor(&cii_output_retval);
+	}
+	
 	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 
 	zval **run_controller;
@@ -536,9 +521,9 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "benchmark", 9, CII_G(benchmark_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "lang", 4, CII_G(lang_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "lang", 4, CII_G(lang_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
 	/*
 	*	调用活动控制器构造方法
 	*	没有参数
@@ -590,9 +575,10 @@ PHP_FUNCTION(cii_run)
 	zval_ptr_dtor(&CII_G(input_obj));
 	zval_ptr_dtor(&CII_G(session_obj));
 	zval_ptr_dtor(&CII_G(benchmark_obj));
-	// zval_ptr_dtor(&CII_G(output_obj));
-	// zval_ptr_dtor(&CII_G(pagination_obj));
-	// zval_ptr_dtor(&CII_G(lang_obj));
+	zval_ptr_dtor(&CII_G(lang_obj));
+	zval_ptr_dtor(&CII_G(pagination_obj));
+	zval_ptr_dtor(&CII_G(output_obj));
+	//
 	zend_hash_destroy(CII_G(view_symbol_table));
  	FREE_HASHTABLE(CII_G(view_symbol_table));
  	/*
@@ -716,15 +702,14 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_config)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_uri)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_router)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_database)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_loader)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_input)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_session)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_benchmark)(INIT_FUNC_ARGS_PASSTHRU);
-	// ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
-	
-	// ZEND_MINIT(cii_pagination)(INIT_FUNC_ARGS_PASSTHRU);
-	// ZEND_MINIT(cii_lang)(INIT_FUNC_ARGS_PASSTHRU);
-	ZEND_MINIT(cii_database)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_lang)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_pagination)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
 	//
 	return SUCCESS;
 }
