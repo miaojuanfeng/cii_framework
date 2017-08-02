@@ -647,6 +647,40 @@ PHP_FUNCTION(cii_base_url)
 	}
 }
 
+PHP_FUNCTION(cii_redirect)
+{
+	char *request_uri = NULL;
+	uint request_uri_len = 0;
+	zval **header_param[1];
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &request_uri, &request_uri_len) == FAILURE){
+		return;
+	}
+
+	zval **base_url;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
+		php_error(E_ERROR, "get config item 'base_url' failed.");
+	}
+
+	char *hstr;
+	uint hstr_len;
+	if( request_uri ){
+		hstr_len = spprintf(&hstr, 0, "Location: %s/%s", Z_STRVAL_PP(base_url), request_uri);
+	}else{
+		hstr_len = spprintf(&hstr, 0, "Location: %s", Z_STRVAL_PP(base_url));
+	}
+
+	zval *header;
+	MAKE_STD_ZVAL(header);
+	ZVAL_STRINGL(header, hstr, hstr_len, 0);
+
+	header_param[0] = &header;
+
+	zval *header_retval;
+	CII_CALL_USER_FUNCTION_EX(EG(function_table), NULL, "header", &header_retval, 1, header_param);
+	zval_ptr_dtor(&header_retval);
+}
+
 ZEND_BEGIN_ARG_INFO_EX(cii_get_instance_arginfo, 0, 1, 0)
 ZEND_END_ARG_INFO()
 PHP_FUNCTION(cii_get_instance)
@@ -765,6 +799,7 @@ PHP_MINFO_FUNCTION(cii)
 const zend_function_entry cii_functions[] = {
 	PHP_FE(cii_run,	NULL)		/* For testing, remove later. */
 	PHP_FE(cii_base_url,	NULL)
+	PHP_FE(cii_redirect,	NULL)
 	PHP_FE(cii_get_instance,	cii_get_instance_arginfo)
 	PHP_FE_END	/* Must be the last line in cii_functions[] */
 };

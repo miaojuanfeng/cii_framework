@@ -264,9 +264,9 @@ PHP_METHOD(cii_loader, model){
 	/*
 	* add new object property to cii_controller class
 	*/
-	name_lower = zend_str_tolower_dup(model, model_len);
+	
 	if( !name || !name_len ){
-		if( strchr(name_lower, '/') ){
+		if( strchr(model, '/') ){
 			char *p = model + model_len;
 			uint p_len = 0;
 			while( p != model ){
@@ -285,8 +285,9 @@ PHP_METHOD(cii_loader, model){
 			name_len = model_len;
 		}
 	}
+	name_lower = zend_str_tolower_dup(name, name_len);
 
-	if( zend_hash_find(CG(class_table), name, name_len+1, (void**)&ce) == SUCCESS ){
+	if( zend_hash_find(CG(class_table), name_lower, name_len+1, (void**)&ce) == SUCCESS ){
 		/*
 		*	new ce object
 		*/
