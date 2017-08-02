@@ -354,28 +354,32 @@ PHP_METHOD(cii_loader, model){
 PHP_METHOD(cii_loader, helper){
 	char *helper;
 	uint helper_len;
-	char *name;
-	uint name_len;
 	char *file;
 	uint file_len;
 
 	HashTable *old_active_symbol_table;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &name, &name_len, &helper, &helper_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &helper, &helper_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
 
-	if( !helper_len || !name_len ){
+	if( !helper_len ){
 		RETURN_FALSE;
 	}
+
+	/*
+	*	helper filepath
+	*/
+	zval **helper_path;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "helpers_path", 13, (void**)&helper_path) == FAILURE ||
+		Z_TYPE_PP(helper_path) != IS_STRING || Z_STRLEN_PP(helper_path) == 0 ){
+		php_error(E_ERROR, "Your config 'helpers_path' does not appear to be formatted correctly.");
+	}
+	file_len = spprintf(&file, 0, "%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(helper_path), helper);
 
     old_active_symbol_table = EG(active_symbol_table);
     ALLOC_HASHTABLE(EG(active_symbol_table));
     zend_hash_init(EG(active_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
-		/*
-		*	set helper file name
-		*/
-		file_len = spprintf(&file, 0, "%s", helper);
 		/*
 		*	check is loaded helper file name
 		*/
