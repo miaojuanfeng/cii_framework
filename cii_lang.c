@@ -29,7 +29,7 @@ PHP_METHOD(cii_lang, __construct)
 	/*
 	*	output log
 	*/
-	// cii_write_log(3, "Language Class Initialized");
+	cii_write_log(3, "Language Class Initialized");
 }
 /*
 *	load language file

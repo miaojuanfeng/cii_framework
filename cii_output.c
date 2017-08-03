@@ -16,7 +16,7 @@ PHP_METHOD(cii_output, __construct)
 	/*
 	*	output log
 	*/
-	// cii_write_log(3, "Output Class Initialized");
+	cii_write_log(3, "Output Class Initialized");
 }
 /*
 *	append_output

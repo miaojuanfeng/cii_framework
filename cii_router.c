@@ -30,7 +30,7 @@ PHP_METHOD(cii_router, __construct)
 	/*
 	*	output log
 	*/
-	// cii_write_log(3, "Router Class Initialized");
+	cii_write_log(3, "Router Class Initialized");
 }
 /**
 * Set class name

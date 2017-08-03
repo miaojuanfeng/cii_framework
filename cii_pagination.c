@@ -52,6 +52,10 @@ PHP_METHOD(cii_pagination, __construct)
 	ZVAL_STRINGL(_last_link, ">>", 2, 1);
 	zend_update_property(cii_pagination_ce, getThis(), ZEND_STRL("last_link"), _last_link TSRMLS_CC);
 	zval_ptr_dtor(&_last_link);
+	/*
+	*	output log
+	*/
+	cii_write_log(3, "Pagination Class Initialized");
 }
 
 PHP_METHOD(cii_pagination, initialize)

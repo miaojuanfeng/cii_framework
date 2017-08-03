@@ -50,13 +50,18 @@ ZEND_API int cii_write_log(int level, char *message)
 	char filename[19];   
 	strftime(filename, 19, "log-%Y-%m-%d.php", localtime(&t));
 	/*
+	*	logs filepath
+	*/
+	zval **logs_path;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
+		Z_TYPE_PP(logs_path) != IS_STRING || Z_STRLEN_PP(logs_path) == 0 ){
+		php_error(E_ERROR, "Your config 'logs_path' does not appear to be formatted correctly.");
+	}
+	/*
 	*	set filepath
 	*/
 	char *filepath;
-	if( !CII_G(apppath) ){
-		cii_get_apppath();
-	}
-	spprintf(&filepath, 0, "%s%s%s", CII_G(apppath), "logs/", filename);
+	spprintf(&filepath, 0, "%s/%s/%s", CII_G(app_path), Z_STRVAL_PP(logs_path), filename);
 	/*
 	*	set level title
 	*/
@@ -76,24 +81,52 @@ ZEND_API int cii_write_log(int level, char *message)
 	char time[20];
 	strftime(time, 20, "%Y-%m-%d %H:%M:%S", localtime(&t));
 	/*
-	*	open file
+	*	open file to write log
 	*/
 	FILE *f;
-	if( (f = fopen(filepath, "a")) == NULL ){
-		php_error(E_WARNING, "Cannot open log file: logs/%s", filename);
-		efree(filepath);
-		return 0;
-	}
 	/*
-	*	write log
+	*	open new file
 	*/
-	char *log;
-	spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", time, " --> ", message, "\r\n");
-	fputs(log, f);
+	if( access(filepath, 0) ){	
+		if( (f = fopen(filepath, "a")) == NULL ){
+			php_error(E_WARNING, "Cannot open log file: %s", filepath);
+			efree(filepath);
+			return 0;
+		}
+		/*
+		*	write access
+		*/
+		char *access;
+		spprintf(&access, 0, "<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>\r\n\r\n");
+		fputs(access, f);
+		efree(access);
+		/*
+		*	write log
+		*/
+		char *log;
+		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", time, " --> ", message, "\r\n");
+		fputs(log, f);
+		efree(log);
+	/*
+	*	open exists file
+	*/
+	}else{
+		if( (f = fopen(filepath, "a")) == NULL ){
+			php_error(E_WARNING, "Cannot open log file: %s", filepath);
+			efree(filepath);
+			return 0;
+		}
+		/*
+		*	write log
+		*/
+		char *log;
+		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", time, " --> ", message, "\r\n");
+		fputs(log, f);
+		efree(log);
+	}
 	/*
 	*	free used memory
 	*/
-	efree(log);
 	fclose(f);
 	efree(filepath);
 	/*

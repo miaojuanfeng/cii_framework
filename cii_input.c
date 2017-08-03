@@ -20,9 +20,10 @@ zval* cii_get_http_globals(char *name TSRMLS_DC){
 PHP_METHOD(cii_input, __construct)
 {
 
-    // if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(post), "PATH_INFO", sizeof("PATH_INFO"), (void**)&query) && Z_TYPE_PP(query) == IS_STRING ){
-
-    // }
+    /*
+	*	output log
+	*/
+	cii_write_log(3, "Input Class Initialized");
 }
 
 PHP_METHOD(cii_input, is_post)

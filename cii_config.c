@@ -88,7 +88,7 @@ PHP_METHOD(cii_config, __construct)
 	/*
 	* output log
 	*/
-	// cii_write_log(3, "Config Class Initialized");
+	cii_write_log(3, "Config Class Initialized");
 }
 /*
 *	cii_config_item

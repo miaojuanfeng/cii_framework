@@ -91,6 +91,10 @@ PHP_METHOD(cii_database, __construct)
 	ZVAL_STRING(select, "SELECT *", 1);
 	zend_update_property(cii_database_ce, getThis(), "select", 6, select TSRMLS_CC);
 	zval_ptr_dtor(&select);
+	/*
+	*	output log
+	*/
+	cii_write_log(3, "Database Class Initialized");
 }
 
 

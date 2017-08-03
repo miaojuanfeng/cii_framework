@@ -40,6 +40,7 @@
 #include "cii_lang.c"
 #include "cii_pagination.c"
 #include "cii_output.c"
+#include "cii_log.c"
 
 
 ZEND_DECLARE_MODULE_GLOBALS(cii)
@@ -448,6 +449,16 @@ PHP_FUNCTION(cii_run)
 		CII_CALL_USER_METHOD_EX(&CII_G(output_obj), "__construct", &cii_output_retval, 0, NULL);
 		zval_ptr_dtor(&cii_output_retval);
 	}
+	/*
+	* load CII_Log object
+	*/
+	MAKE_STD_ZVAL(CII_G(log_obj));
+	object_init_ex(CII_G(log_obj), cii_log_ce);
+	if (zend_hash_exists(&cii_log_ce->function_table, "__construct", 12)) {
+		zval *cii_log_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(log_obj), "__construct", &cii_log_retval, 0, NULL);
+		zval_ptr_dtor(&cii_log_retval);
+	}
 	
 	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 
@@ -501,7 +512,7 @@ PHP_FUNCTION(cii_run)
 	CII_G(instance_obj) = CII_G(controller_obj);
 	/*
 	*	注入CII内核类对象实例到CII::Loader类对象成员变量中
-	*	使用CII_Loader::__get()函数替代以下注入过程，从Controller中自动获取对象
+	*	使用CII_Loader::__get()魔术函数替代以下注入过程，从Controller中自动获取对象
 	*/
 	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
 	// zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
@@ -524,6 +535,7 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "lang", 4, CII_G(lang_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
+	zend_update_property(*run_class_ce, CII_G(controller_obj), "log", 3, CII_G(log_obj) TSRMLS_CC);
 	/*
 	*	调用活动控制器构造方法
 	*	没有参数
@@ -578,6 +590,7 @@ PHP_FUNCTION(cii_run)
 	zval_ptr_dtor(&CII_G(lang_obj));
 	zval_ptr_dtor(&CII_G(pagination_obj));
 	zval_ptr_dtor(&CII_G(output_obj));
+	zval_ptr_dtor(&CII_G(log_obj));
 	//
 	zend_hash_destroy(CII_G(view_symbol_table));
  	FREE_HASHTABLE(CII_G(view_symbol_table));
@@ -744,6 +757,7 @@ PHP_MINIT_FUNCTION(cii)
 	ZEND_MINIT(cii_lang)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_pagination)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_output)(INIT_FUNC_ARGS_PASSTHRU);
+	ZEND_MINIT(cii_log)(INIT_FUNC_ARGS_PASSTHRU);
 	//
 	return SUCCESS;
 }

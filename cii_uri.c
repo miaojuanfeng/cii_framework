@@ -198,6 +198,11 @@ PHP_METHOD(cii_uri, __construct)
 		Z_ADDREF_PP(default_method);
 		zend_hash_index_update(Z_ARRVAL_P(rsegments), 2, default_method, sizeof(zval *), NULL);
 	}
+
+	/*
+	*	output log
+	*/
+	cii_write_log(3, "URI Class Initialized");
 }
 /**
 * Fetch URI Segment

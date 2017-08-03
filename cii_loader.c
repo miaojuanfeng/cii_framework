@@ -32,9 +32,10 @@ ZEND_API void cii___get(INTERNAL_FUNCTION_PARAMETERS)
 PHP_METHOD(cii_loader, __construct)
 {
 
-    // if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(post), "PATH_INFO", sizeof("PATH_INFO"), (void**)&query) && Z_TYPE_PP(query) == IS_STRING ){
-
-    // }
+    /*
+	*	output log
+	*/
+	cii_write_log(3, "Loader Class Initialized");
 }
 
 /*  

@@ -51,6 +51,11 @@ PHP_METHOD(cii_session, __construct)
 	if(free_session){
 		zval_ptr_dtor(&init_session);
 	}
+
+	/*
+	*	output log
+	*/
+	cii_write_log(3, "Session Class Initialized");
 }
 
 /*  

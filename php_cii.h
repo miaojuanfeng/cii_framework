@@ -53,6 +53,7 @@ ZEND_BEGIN_MODULE_GLOBALS(cii)
     zval *output_obj;
     zval *input_obj;
     zval *config_obj;
+    zval *log_obj;
     //
     zval *session_obj;
     zval *benchmark_obj;
