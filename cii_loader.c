@@ -477,7 +477,7 @@ PHP_METHOD(cii_loader, library){
 		name_len = library_len;
 	}
 
-	if( zend_hash_find(CG(class_table), name_lower, name_len+1, (void**)&ce) == SUCCESS ){
+	if( zend_hash_find(CG(class_table), name_lower, library_len+1, (void**)&ce) == SUCCESS ){
 		/*
 		*	new ce object
 		*/
