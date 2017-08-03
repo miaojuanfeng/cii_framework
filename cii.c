@@ -350,6 +350,16 @@ PHP_FUNCTION(cii_run)
 		php_error(E_ERROR, "Your config parameter does not appear to be formatted correctly.");
 	}
 	/*
+	* load CII_Log object
+	*/
+	MAKE_STD_ZVAL(CII_G(log_obj));
+	object_init_ex(CII_G(log_obj), cii_log_ce);
+	if (zend_hash_exists(&cii_log_ce->function_table, "__construct", 12)) {
+		zval *cii_log_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(log_obj), "__construct", &cii_log_retval, 0, NULL);
+		zval_ptr_dtor(&cii_log_retval);
+	}
+	/*
 	* load CII_Config object
 	*/
 	MAKE_STD_ZVAL(CII_G(config_obj));
@@ -448,16 +458,6 @@ PHP_FUNCTION(cii_run)
 		zval *cii_output_retval;
 		CII_CALL_USER_METHOD_EX(&CII_G(output_obj), "__construct", &cii_output_retval, 0, NULL);
 		zval_ptr_dtor(&cii_output_retval);
-	}
-	/*
-	* load CII_Log object
-	*/
-	MAKE_STD_ZVAL(CII_G(log_obj));
-	object_init_ex(CII_G(log_obj), cii_log_ce);
-	if (zend_hash_exists(&cii_log_ce->function_table, "__construct", 12)) {
-		zval *cii_log_retval;
-		CII_CALL_USER_METHOD_EX(&CII_G(log_obj), "__construct", &cii_log_retval, 0, NULL);
-		zval_ptr_dtor(&cii_log_retval);
 	}
 	
 	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
@@ -694,6 +694,22 @@ PHP_FUNCTION(cii_redirect)
 	zval_ptr_dtor(&header_retval);
 }
 
+PHP_FUNCTION(cii_log_message)
+{
+	char *level;
+	uint level_len;
+	char *message;
+	uint message_len;
+	
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss" ,&level, &level_len, &message, &message_len) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	char retval = cii_user_write_log(level, level_len, message, message_len);
+	if( return_value_used ){
+		RETURN_BOOL(retval);
+	}
+}
+
 ZEND_BEGIN_ARG_INFO_EX(cii_get_instance_arginfo, 0, 1, 0)
 ZEND_END_ARG_INFO()
 PHP_FUNCTION(cii_get_instance)
@@ -814,6 +830,7 @@ const zend_function_entry cii_functions[] = {
 	PHP_FE(cii_run,	NULL)		/* For testing, remove later. */
 	PHP_FE(cii_base_url,	NULL)
 	PHP_FE(cii_redirect,	NULL)
+	PHP_FE(cii_log_message,	NULL)
 	PHP_FE(cii_get_instance,	cii_get_instance_arginfo)
 	PHP_FE_END	/* Must be the last line in cii_functions[] */
 };

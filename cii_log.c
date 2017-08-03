@@ -11,6 +11,35 @@ zend_class_entry *cii_log_ce;
 PHP_METHOD(cii_log, __construct)
 {
 	/*
+	*	logs filepath
+	*/
+	zval **logs_path;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
+		Z_TYPE_PP(logs_path) != IS_STRING || Z_STRLEN_PP(logs_path) == 0 ){
+		php_error(E_ERROR, "Your config 'logs_path' does not appear to be formatted correctly.");
+	}
+	/*
+	*	set filepath
+	*/
+	char *filepath;
+	spprintf(&filepath, 0, "%s/%s", CII_G(app_path), Z_STRVAL_PP(logs_path));
+	/*
+	*	directory not exists, create the directory
+	*/
+	if( access(filepath, 0) ){
+		if( !mkdir(filepath, 0777) ){
+			/*
+			*	output log
+			*/
+			cii_write_log(3, "Log Folder Created");
+		}else{
+			/*
+			*	output log
+			*/
+			php_error(E_WARNING, "Create Log Folder Failed");
+		}
+	}
+	/*
 	*	output log
 	*/
 	cii_write_log(3, "Log Class Initialized");
