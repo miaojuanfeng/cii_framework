@@ -228,6 +228,20 @@ PHP_METHOD(cii_input, user_agent)
 	}
 }
 
+PHP_METHOD(cii_input, ip_address)
+{
+	zval *server;
+	zval **value;
+
+	server = cii_get_http_globals("_SERVER" TSRMLS_CC);
+
+	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "REMOTE_ADDR", 12, (void**)&value) ){
+		RETURN_ZVAL(*value, 1, 0);
+	}else{
+		RETURN_NULL();
+	}
+}
+
 zend_function_entry cii_input_methods[] = {
 	PHP_ME(cii_input, __construct,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(cii_input, post,   NULL, ZEND_ACC_PUBLIC)
@@ -241,6 +255,7 @@ zend_function_entry cii_input_methods[] = {
 	PHP_ME(cii_input, is_get, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_input, user_agent, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_input, method, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_input, ip_address, NULL, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 

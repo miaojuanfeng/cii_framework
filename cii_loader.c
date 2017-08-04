@@ -552,6 +552,7 @@ PHP_METHOD(cii_loader, database)
 	*	do for $this->db->...
 	*/
 	zend_update_property(cii_loader_ce, getThis(), "db", 2, database_obj TSRMLS_CC);
+	zend_update_property(CII_G(controller_ce), CII_G(controller_obj), "db", 2, database_obj TSRMLS_CC);
 	/*
 	*	do for $this->db->...
 	*/

@@ -268,21 +268,22 @@ PHP_FUNCTION(cii_run)
 		/*
 		*	foreach config array that defined in parameter
 		*/
-		for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(config), &pos);
-		    zend_hash_has_more_elements_ex(Z_ARRVAL_P(config), &pos) == SUCCESS;
-		    zend_hash_move_forward_ex(Z_ARRVAL_P(config), &pos)){
-			if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_P(config), &key, &key_len, &idx, 0, &pos)) == HASH_KEY_NON_EXISTENT){
-				continue;
-			}
-			if(zend_hash_get_current_data_ex(Z_ARRVAL_P(config), (void**)&value, &pos) == FAILURE){
-				continue;
-			}
-			/*
-			*	update CII_G(CII_G(configs))
-			*/
-			Z_ADDREF_P(*value);
-			zend_hash_update(Z_ARRVAL_P(CII_G(configs)), key, key_len, value, sizeof(zval *), NULL);
-		}
+		// for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(config), &pos);
+		//     zend_hash_has_more_elements_ex(Z_ARRVAL_P(config), &pos) == SUCCESS;
+		//     zend_hash_move_forward_ex(Z_ARRVAL_P(config), &pos)){
+		// 	if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_P(config), &key, &key_len, &idx, 0, &pos)) == HASH_KEY_NON_EXISTENT){
+		// 		continue;
+		// 	}
+		// 	if(zend_hash_get_current_data_ex(Z_ARRVAL_P(config), (void**)&value, &pos) == FAILURE){
+		// 		continue;
+		// 	}
+		// 	/*
+		// 	*	update CII_G(CII_G(configs))
+		// 	*/
+		// 	Z_ADDREF_P(*value);
+		// 	zend_hash_update(Z_ARRVAL_P(CII_G(configs)), key, key_len, value, sizeof(zval *), NULL);
+		// }
+		php_error(E_ERROR, "Config by array have not complete yet.");
 	/*
 	*	parameter config is a file path
 	*/
@@ -317,10 +318,10 @@ PHP_FUNCTION(cii_run)
 			Z_ADDREF_P(*value);
 			zend_hash_update(Z_ARRVAL_P(CII_G(configs)), key, key_len, value, sizeof(zval *), NULL);
 		}
-
-		// database
+		/*
+		*	database
+		*/
 		zval **db;
-
 		if( zend_hash_find(EG(active_symbol_table), "db", 3, (void**)&db) != FAILURE && Z_TYPE_PP(db) == IS_ARRAY ){
 			// php_error(E_ERROR, "Your config file does not appear to be formatted correctly.");	
 			/*
@@ -341,6 +342,18 @@ PHP_FUNCTION(cii_run)
 				Z_ADDREF_P(*value);
 				zend_hash_update(Z_ARRVAL_P(CII_G(configs)), key, key_len, value, sizeof(zval *), NULL);
 			}
+		}
+		/*
+		*	autoload
+		*/
+		zval **autoload;
+		if( zend_hash_find(EG(active_symbol_table), "autoload", 9, (void**)&autoload) != FAILURE && Z_TYPE_PP(autoload) == IS_ARRAY ){
+			// php_error(E_ERROR, "Your config file does not appear to be formatted correctly.");	
+			/*
+			*	foreach autoload array that defined in file
+			*/
+			Z_ADDREF_P(*autoload);
+			zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "autoload", 9, autoload, sizeof(zval *), NULL);
 		}
 
 		CII_DESTROY_ACTIVE_SYMBOL_TABLE();
@@ -536,6 +549,45 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "log", 3, CII_G(log_obj) TSRMLS_CC);
+	/*
+	*	注入autoload成员
+	*/
+	zval **autoload;
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "autoload", 9, (void**)&autoload) == SUCCESS ){
+		/*
+		*	helper
+		*/
+		zval **helper;
+		if( zend_hash_find(Z_ARRVAL_PP(autoload), "helper", 7, (void**)&helper) == SUCCESS && Z_TYPE_PP(helper) == IS_ARRAY ){
+			/*
+			*	foreach helper array that defined in file
+			*/
+			for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(*helper), &pos);
+			    zend_hash_has_more_elements_ex(Z_ARRVAL_P(*helper), &pos) == SUCCESS;
+			    zend_hash_move_forward_ex(Z_ARRVAL_P(*helper), &pos)){
+				if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_P(*helper), &key, &key_len, &idx, 0, &pos)) == HASH_KEY_NON_EXISTENT){
+					continue;
+				}
+				if(zend_hash_get_current_data_ex(Z_ARRVAL_P(*helper), (void**)&value, &pos) == FAILURE){
+					continue;
+				}
+				/*
+				*	update CII_G(configs)
+				*/
+				if( Z_TYPE_PP(value) == IS_STRING ){ php_printf("%s", Z_STRVAL_PP(value));
+					zval **loader_param[1];
+					loader_param[0] = value;
+					//if ( zend_hash_exists(&cii_loader_ce->function_table, "helper", 7) ){
+					zval *loader_retval;
+					CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "helper", &loader_retval, 1, loader_param);
+					zval_ptr_dtor(&loader_retval);
+					//}
+				}else{
+					php_error(E_WARNING, "Autoload 'helper' item should be String\n");
+				}
+			}
+		}
+	}
 	/*
 	*	调用活动控制器构造方法
 	*	没有参数
