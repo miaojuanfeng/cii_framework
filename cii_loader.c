@@ -222,6 +222,7 @@ PHP_METHOD(cii_loader, model){
 	zend_class_entry **ce;
 	zval *new_object;
 	char *name_lower;
+	uint name_lower_len;
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &model, &model_len, &name, &name_len) == FAILURE){
 		RETURN_NULL();
@@ -265,7 +266,6 @@ PHP_METHOD(cii_loader, model){
 	/*
 	* add new object property to cii_controller class
 	*/
-	
 	if( !name || !name_len ){
 		if( strchr(model, '/') ){
 			char *p = model + model_len;
@@ -285,10 +285,14 @@ PHP_METHOD(cii_loader, model){
 			name = estrndup(model, model_len);
 			name_len = model_len;
 		}
+		name_lower = zend_str_tolower_dup(name, name_len);
+		name_lower_len = name_len;
+	}else{
+		name_lower = zend_str_tolower_dup(model, model_len);
+		name_lower_len = model_len;
 	}
-	name_lower = zend_str_tolower_dup(name, name_len);
 
-	if( zend_hash_find(CG(class_table), name_lower, name_len+1, (void**)&ce) == SUCCESS ){
+	if( zend_hash_find(CG(class_table), name_lower, name_lower_len+1, (void**)&ce) == SUCCESS ){php_printf("%s", name_lower);
 		/*
 		*	new ce object
 		*/
@@ -437,7 +441,7 @@ PHP_METHOD(cii_loader, library){
 	/*
 	*	no library specify, just return this
 	*/
-	if( !library_len || !name_len ){
+	if( !library_len ){
 		RETURN_NULL();
 	}
 	/*

@@ -550,10 +550,72 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "log", 3, CII_G(log_obj) TSRMLS_CC);
 	/*
-	*	注入autoload成员
+	*	注入autoload对象
 	*/
 	zval **autoload;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "autoload", 9, (void**)&autoload) == SUCCESS ){
+		/*
+		*	model
+		*/
+		zval **model;
+		if( zend_hash_find(Z_ARRVAL_PP(autoload), "model", 6, (void**)&model) == SUCCESS && Z_TYPE_PP(model) == IS_ARRAY ){
+			/*
+			*	foreach model array that defined in file
+			*/
+			for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(*model), &pos);
+			    zend_hash_has_more_elements_ex(Z_ARRVAL_P(*model), &pos) == SUCCESS;
+			    zend_hash_move_forward_ex(Z_ARRVAL_P(*model), &pos)){
+				if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_P(*model), &key, &key_len, &idx, 0, &pos)) == HASH_KEY_NON_EXISTENT){
+					continue;
+				}
+				if(zend_hash_get_current_data_ex(Z_ARRVAL_P(*model), (void**)&value, &pos) == FAILURE){
+					continue;
+				}
+				/*
+				*	update CII_G(configs)
+				*/
+				if( Z_TYPE_PP(value) == IS_STRING ){
+					zval **loader_param[1];
+					loader_param[0] = value;
+					//if ( zend_hash_exists(&cii_loader_ce->function_table, "model", 7) ){
+					zval *loader_retval;
+					CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "model", &loader_retval, 1, loader_param);
+					zval_ptr_dtor(&loader_retval);
+					//}
+				}else if( Z_TYPE_PP(value) == IS_ARRAY ){
+					zval ***loader_param = NULL;
+					uint loader_param_count = 0;
+					if( Z_ARRVAL_PP(value)->nNumOfElements > 0 ){
+						loader_param_count = Z_ARRVAL_PP(value)->nNumOfElements;
+						loader_param = emalloc(loader_param_count * sizeof(zval*));
+						HashPosition loader_pos;
+						char *loader_key;
+						uint loader_key_len;
+						ulong loader_idx;
+						zval **loader_value;
+						uint loader_key_type;
+						uint loader_param_index = 0;
+						for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(value), &loader_pos);
+						    zend_hash_has_more_elements_ex(Z_ARRVAL_PP(value), &loader_pos) == SUCCESS;
+						    zend_hash_move_forward_ex(Z_ARRVAL_PP(value), &loader_pos)){
+							if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_PP(value), &loader_key, &loader_key_len, &loader_idx, 0, &loader_pos)) == HASH_KEY_NON_EXISTENT){
+								continue;
+							}
+							if(zend_hash_get_current_data_ex(Z_ARRVAL_PP(value), (void**)&loader_value, &loader_pos) == FAILURE){
+								continue;
+							}
+							loader_param[loader_param_index++] = loader_value;
+							// php_printf("%s", Z_STRVAL_PP(loader_value));
+						}
+						zval *loader_retval;
+						CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "model", &loader_retval, loader_param_count, loader_param);
+						zval_ptr_dtor(&loader_retval);
+					}
+				}else{
+					php_error(E_WARNING, "Autoload 'model' item should be String or Array\n");
+				}
+			}
+		}
 		/*
 		*	helper
 		*/
@@ -574,7 +636,7 @@ PHP_FUNCTION(cii_run)
 				/*
 				*	update CII_G(configs)
 				*/
-				if( Z_TYPE_PP(value) == IS_STRING ){ php_printf("%s", Z_STRVAL_PP(value));
+				if( Z_TYPE_PP(value) == IS_STRING ){
 					zval **loader_param[1];
 					loader_param[0] = value;
 					//if ( zend_hash_exists(&cii_loader_ce->function_table, "helper", 7) ){
@@ -584,6 +646,67 @@ PHP_FUNCTION(cii_run)
 					//}
 				}else{
 					php_error(E_WARNING, "Autoload 'helper' item should be String\n");
+				}
+			}
+		}
+		/*
+		*	library
+		*/
+		zval **library;
+		if( zend_hash_find(Z_ARRVAL_PP(autoload), "library", 8, (void**)&library) == SUCCESS && Z_TYPE_PP(library) == IS_ARRAY ){
+			/*
+			*	foreach library array that defined in file
+			*/
+			for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(*library), &pos);
+			    zend_hash_has_more_elements_ex(Z_ARRVAL_P(*library), &pos) == SUCCESS;
+			    zend_hash_move_forward_ex(Z_ARRVAL_P(*library), &pos)){
+				if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_P(*library), &key, &key_len, &idx, 0, &pos)) == HASH_KEY_NON_EXISTENT){
+					continue;
+				}
+				if(zend_hash_get_current_data_ex(Z_ARRVAL_P(*library), (void**)&value, &pos) == FAILURE){
+					continue;
+				}
+				/*
+				*	update CII_G(configs)
+				*/
+				if( Z_TYPE_PP(value) == IS_STRING ){
+					zval **loader_param[1];
+					loader_param[0] = value;
+					//if ( zend_hash_exists(&cii_loader_ce->function_table, "library", 7) ){
+					zval *loader_retval;
+					CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "library", &loader_retval, 1, loader_param);
+					zval_ptr_dtor(&loader_retval);
+					//}
+				}else if( Z_TYPE_PP(value) == IS_ARRAY ){
+					zval ***loader_param = NULL;
+					uint loader_param_count = 0;
+					if( Z_ARRVAL_PP(value)->nNumOfElements > 0 ){
+						loader_param_count = Z_ARRVAL_PP(value)->nNumOfElements;
+						loader_param = emalloc(loader_param_count * sizeof(zval*));
+						HashPosition loader_pos;
+						char *loader_key;
+						uint loader_key_len;
+						ulong loader_idx;
+						zval **loader_value;
+						uint loader_key_type;
+						uint loader_param_index = 0;
+						for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(value), &loader_pos);
+						    zend_hash_has_more_elements_ex(Z_ARRVAL_PP(value), &loader_pos) == SUCCESS;
+						    zend_hash_move_forward_ex(Z_ARRVAL_PP(value), &loader_pos)){
+							if( (key_type = zend_hash_get_current_key_ex(Z_ARRVAL_PP(value), &loader_key, &loader_key_len, &loader_idx, 0, &loader_pos)) == HASH_KEY_NON_EXISTENT){
+								continue;
+							}
+							if(zend_hash_get_current_data_ex(Z_ARRVAL_PP(value), (void**)&loader_value, &loader_pos) == FAILURE){
+								continue;
+							}
+							loader_param[loader_param_index++] = loader_value;
+						}
+						zval *loader_retval;
+						CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "library", &loader_retval, loader_param_count, loader_param);
+						zval_ptr_dtor(&loader_retval);
+					}
+				}else{
+					php_error(E_WARNING, "Autoload 'library' item should be String or Array\n");
 				}
 			}
 		}
@@ -609,7 +732,7 @@ PHP_FUNCTION(cii_run)
 	if( Z_ARRVAL_P(rsegments)->nNumOfElements > 2 ){
 		run_method_param_count = Z_ARRVAL_P(rsegments)->nNumOfElements - 2;
 		run_method_param = emalloc(run_method_param_count * sizeof(zval*));
-		int i=1;
+		int i;
 		for(i=1;i<=run_method_param_count;i++){
 			zval **param;
 			if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), i+2) || zend_hash_index_find(Z_ARRVAL_P(rsegments), i+2, (void**)&param) == FAILURE ){
