@@ -292,7 +292,7 @@ PHP_METHOD(cii_loader, model){
 		name_lower_len = model_len;
 	}
 
-	if( zend_hash_find(CG(class_table), name_lower, name_lower_len+1, (void**)&ce) == SUCCESS ){php_printf("%s", name_lower);
+	if( zend_hash_find(CG(class_table), name_lower, name_lower_len+1, (void**)&ce) == SUCCESS ){
 		/*
 		*	new ce object
 		*/
