@@ -33,13 +33,13 @@
 #include "cii_uri.c"
 #include "cii_router.c"
 #include "cii_database.c"
+#include "cii_benchmark.c"
+#include "cii_output.c"
 #include "cii_loader.c"
 #include "cii_input.c"
 #include "cii_session.c"
-#include "cii_benchmark.c"
 #include "cii_lang.c"
 #include "cii_pagination.c"
-#include "cii_output.c"
 #include "cii_log.c"
 
 
@@ -383,6 +383,30 @@ PHP_FUNCTION(cii_run)
 		zval_ptr_dtor(&cii_config_retval);
 	}
 	/*
+	* load CII_Benchmark object
+	*/
+	MAKE_STD_ZVAL(CII_G(benchmark_obj));
+	object_init_ex(CII_G(benchmark_obj), cii_benchmark_ce);
+	if (zend_hash_exists(&cii_benchmark_ce->function_table, "__construct", 12)) {
+		zval *cii_benchmark_retval;
+		CII_CALL_USER_METHOD_EX(&CII_G(benchmark_obj), "__construct", &cii_benchmark_retval, 0, NULL);
+		zval_ptr_dtor(&cii_benchmark_retval);
+	}
+	/*
+	*	Start the timer... tick tock tick tock...
+	*/
+	zval *marker = zend_read_property(cii_benchmark_ce, CII_G(benchmark_obj), ZEND_STRL("marker"), 1 TSRMLS_CC);
+
+	zval *total_execution_time_start;
+	MAKE_STD_ZVAL(total_execution_time_start);
+	ZVAL_DOUBLE(total_execution_time_start, cii_microtime());
+	zend_hash_update(Z_ARRVAL_P(marker), "total_execution_time_start", 27, &total_execution_time_start, sizeof(zval*), NULL);
+
+	// zval *loading_time_base_classes_start;
+	// MAKE_STD_ZVAL(loading_time_base_classes_start);
+	// ZVAL_DOUBLE(loading_time_base_classes_start, cii_microtime());
+	// zend_hash_update(Z_ARRVAL_P(marker), "loading_time:_base_classes_start", 33, &loading_time_base_classes_start, sizeof(zval*), NULL);
+	/*
 	* load CII_URI object
 	*/
 	MAKE_STD_ZVAL(CII_G(uri_obj));
@@ -431,16 +455,6 @@ PHP_FUNCTION(cii_run)
 		zval *cii_session_retval;
 		CII_CALL_USER_METHOD_EX(&CII_G(session_obj), "__construct", &cii_session_retval, 0, NULL);
 		zval_ptr_dtor(&cii_session_retval);
-	}
-	/*
-	* load CII_Benchmark object
-	*/
-	MAKE_STD_ZVAL(CII_G(benchmark_obj));
-	object_init_ex(CII_G(benchmark_obj), cii_benchmark_ce);
-	if (zend_hash_exists(&cii_benchmark_ce->function_table, "__construct", 12)) {
-		zval *cii_benchmark_retval;
-		CII_CALL_USER_METHOD_EX(&CII_G(benchmark_obj), "__construct", &cii_benchmark_retval, 0, NULL);
-		zval_ptr_dtor(&cii_benchmark_retval);
 	}
 	/*
 	* load CII_Lang object
@@ -750,6 +764,26 @@ PHP_FUNCTION(cii_run)
 	CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), Z_STRVAL_PP(run_method), &run_method_retval, run_method_param_count, run_method_param);
 	zval_ptr_dtor(&run_method_retval);
 	/*
+	*	替换时间戳
+	*/
+ 	zval *output;
+	MAKE_STD_ZVAL(output);
+	php_output_get_contents(output TSRMLS_CC);
+	php_output_discard(TSRMLS_C);
+ 	/*
+	*  Send the final rendered output to the browser
+	*/
+	char *output_new;
+	uint output_new_len;
+	char retval;
+	// zval *output = zend_read_property(cii_output_ce, CII_G(output_obj), "final_output", 12, 1 TSRMLS_CC);
+	retval = cii_display(Z_STRVAL_P(output), Z_STRLEN_P(output), &output_new, &output_new_len TSRMLS_CC);
+	PHPWRITE(output_new, output_new_len);
+	if( retval ){
+		efree(output_new);
+	}
+	zval_ptr_dtor(&output);
+	/*
 	*	释放内存，防止内存泄漏
 	*/
 	efree(CII_G(app_path));
@@ -769,18 +803,6 @@ PHP_FUNCTION(cii_run)
 	//
 	zend_hash_destroy(CII_G(view_symbol_table));
  	FREE_HASHTABLE(CII_G(view_symbol_table));
- 	/*
-	*  Send the final rendered output to the browser
-	*/
-	// char *output_new;
-	// uint output_new_len;
-	// char retval;
-	// zval *output = zend_read_property(cii_output_ce, CII_G(output_obj), "final_output", 12, 1 TSRMLS_CC);
-	// retval = cii_display(Z_STRVAL_P(output), Z_STRLEN_P(output), &output_new, &output_new_len TSRMLS_CC);
-	// PHPWRITE(output_new, output_new_len);
-	// if( retval ){
-	// 	efree(output_new);
-	// }
 
 	RETURN_ZVAL(CII_G(controller_obj), 0, 1);
 }

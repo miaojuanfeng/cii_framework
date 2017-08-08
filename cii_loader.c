@@ -162,12 +162,12 @@ PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提
 			php_output_get_contents(return_value TSRMLS_CC);
 			php_output_discard(TSRMLS_C);
 		}else{
-			// zval *output;
 			/*
 			*	传递参数1开启include模式，默认为include_once模式
 			*/
 			cii_loader_import(file, file_len, 1 TSRMLS_CC);
 			//
+			// zval *output;
 			// MAKE_STD_ZVAL(output);
 			// php_output_get_contents(output TSRMLS_CC);
 			// cii_append_output(cii_output_ce, CII_G(output_obj), Z_STRVAL_P(output));
