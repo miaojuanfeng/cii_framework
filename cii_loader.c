@@ -456,22 +456,20 @@ PHP_METHOD(cii_loader, library){
 	/*
 	*	is already included
 	*/
-	if (zend_hash_exists(&EG(included_files), file, file_len + 1)){
-		efree(file);
+	if (!zend_hash_exists(&EG(included_files), file, file_len + 1)){
+		/*
+		*	include file
+		*/
+		old_active_symbol_table = EG(active_symbol_table);
+	    ALLOC_HASHTABLE(EG(active_symbol_table));
+	    zend_hash_init(EG(active_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
+
+		cii_loader_import(file, file_len, 0 TSRMLS_CC);
+		
+		zend_hash_destroy(EG(active_symbol_table));
+	    FREE_HASHTABLE(EG(active_symbol_table));
+	    EG(active_symbol_table) = old_active_symbol_table;
 	}
-	/*
-	*	include file
-	*/
-	old_active_symbol_table = EG(active_symbol_table);
-    ALLOC_HASHTABLE(EG(active_symbol_table));
-    zend_hash_init(EG(active_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
-
-	cii_loader_import(file, file_len, 0 TSRMLS_CC);
-	
-	zend_hash_destroy(EG(active_symbol_table));
-    FREE_HASHTABLE(EG(active_symbol_table));
-    EG(active_symbol_table) = old_active_symbol_table;
-
 	efree(file);
 	/*
 	* add new object property to cii_controller class
