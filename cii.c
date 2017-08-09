@@ -863,21 +863,25 @@ PHP_FUNCTION(cii_redirect)
 	uint request_uri_len = 0;
 	zval **header_param[1];
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &request_uri, &request_uri_len) == FAILURE){
-		return;
-	}
-
-	zval **base_url;
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
-		php_error(E_ERROR, "get config item 'base_url' failed.");
-	}
-
 	char *hstr;
 	uint hstr_len;
-	if( request_uri ){
-		hstr_len = spprintf(&hstr, 0, "Location: %s/%s", Z_STRVAL_PP(base_url), request_uri);
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &request_uri, &request_uri_len) == FAILURE){
+		WRONG_PARAM_COUNT;
+	}
+
+	if( strstr(request_uri, "http://") || strstr(request_uri, "https://") ){
+		hstr_len = spprintf(&hstr, 0, "Location: %s", request_uri);
 	}else{
-		hstr_len = spprintf(&hstr, 0, "Location: %s", Z_STRVAL_PP(base_url));
+		zval **base_url;
+		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
+			php_error(E_ERROR, "get config item 'base_url' failed.");
+		}
+		if( request_uri ){
+			hstr_len = spprintf(&hstr, 0, "Location: %s/%s", Z_STRVAL_PP(base_url), request_uri);
+		}else{
+			hstr_len = spprintf(&hstr, 0, "Location: %s", Z_STRVAL_PP(base_url));
+		}
 	}
 
 	zval *header;
