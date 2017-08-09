@@ -155,6 +155,16 @@ PHP_METHOD(cii_database, query)
 	zend_update_property(cii_db_result_ce, result_obj, "result_id", 9, retval TSRMLS_CC);
 	zval_ptr_dtor(&retval);
 
+	zval *empty_str;
+	MAKE_STD_ZVAL(empty_str);
+	ZVAL_NULL(empty_str);
+	zend_update_property(cii_database_ce, getThis(), "from", 4, empty_str TSRMLS_CC);
+	zend_update_property(cii_database_ce, getThis(), "where", 5, empty_str TSRMLS_CC);
+	zend_update_property(cii_database_ce, getThis(), "order_by", 8, empty_str TSRMLS_CC);
+	zend_update_property(cii_database_ce, getThis(), "limit", 5, empty_str TSRMLS_CC);
+	zend_update_property(cii_database_ce, getThis(), "group_start", 11, empty_str TSRMLS_CC);
+	zend_update_property(cii_database_ce, getThis(), "group_end", 9, empty_str TSRMLS_CC);
+
 	RETURN_ZVAL(result_obj, 1, 1);
 }
 
