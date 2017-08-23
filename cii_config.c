@@ -58,6 +58,7 @@ PHP_METHOD(cii_config, __construct)
 	// 	}
 	// 	zend_hash_update(Z_ARRVAL_P(config), "base_url", 9, &base_url, sizeof(zval *), NULL);
 	// }
+
 	zval **base_url;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
 		zval *server;
@@ -66,7 +67,7 @@ PHP_METHOD(cii_config, __construct)
 		zval *init_base_url;
 		// 这里要初始化一下，不然得不到$_SERVER
 		if (PG(auto_globals_jit)) {
-			zend_is_auto_global("_SERVER", sizeof("_SERVER")-1);
+			zend_is_auto_global("_SERVER", sizeof("_SERVER")-1 TSRMLS_CC);
 		}
 		server = PG(http_globals)[TRACK_VARS_SERVER];
 
@@ -95,6 +96,8 @@ PHP_METHOD(cii_config, __construct)
 */
 ZEND_API zval* cii_config_item(char *item, uint item_len, char *index, uint index_len)
 {
+	TSRMLS_FETCH();
+
 	zval **value;
 	zval *config = CII_G(configs);
 	if( !index ){

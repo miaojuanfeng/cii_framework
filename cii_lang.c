@@ -34,7 +34,7 @@ PHP_METHOD(cii_lang, __construct)
 /*
 *	load language file
 */
-ZEND_API int cii_load_lang(zend_class_entry *cii_lang_ce, zval *cii_lang_obj, char *file, uint len, char *langfile, uint langfile_len, zval *idiom, char is_return, zval **pDest)
+ZEND_API int cii_load_lang(zend_class_entry *cii_lang_ce, zval *cii_lang_obj, char *file, uint len, char *langfile, uint langfile_len, zval *idiom, char is_return, zval **pDest TSRMLS_DC)
 {
 	if (zend_hash_exists(&EG(included_files), file, len+1)) {
 		return 1;
@@ -156,7 +156,7 @@ PHP_METHOD(cii_lang, load)
 			/*
 			*	load lang file
 			*/
-			retval = cii_load_lang(cii_lang_ce, getThis(), file, len, fullfile, fullfile_len, idiom, is_return, &retzval);
+			retval = cii_load_lang(cii_lang_ce, getThis(), file, len, fullfile, fullfile_len, idiom, is_return, &retzval TSRMLS_CC);
 			if( is_return ){
 				zend_hash_update(Z_ARRVAL_P(return_value), Z_STRVAL_PP(value), Z_STRLEN_PP(value)+1, &retzval, sizeof(zval *), NULL);
 			}
@@ -202,7 +202,7 @@ PHP_METHOD(cii_lang, load)
 		/*
 		*	load lang file
 		*/
-		retval = cii_load_lang(cii_lang_ce, getThis(), file, len, fullfile, fullfile_len, idiom, is_return, &retzval);
+		retval = cii_load_lang(cii_lang_ce, getThis(), file, len, fullfile, fullfile_len, idiom, is_return, &retzval TSRMLS_CC);
 		if( is_return ){
 			*return_value = *retzval;
 			zval_copy_ctor(return_value);

@@ -65,7 +65,7 @@ PHP_INI_END()
 /* Every user-visible function in PHP should document itself in the source */
 /* {{{ proto string confirm_cii_compiled(string arg)
    Return a string to confirm that the module is compiled in */
-static char* cii_get_apppath()
+static char* cii_get_apppath(TSRMLS_D)
 {
 	char path[MAXPATHLEN];
 	char *retstr = NULL;
@@ -203,7 +203,7 @@ CII_API int cii_loader_import(char *path, int path_len, int include_once TSRMLS_
 	return 1;
 }
 
-static void cii_init_configs(){
+static void cii_init_configs(TSRMLS_D){
 	/*
 	*	init controllers_path
 	*/
@@ -246,12 +246,12 @@ PHP_FUNCTION(cii_run)
 	*/
 	MAKE_STD_ZVAL(CII_G(configs));
 	array_init(CII_G(configs));
-	cii_init_configs();
-	CII_G(app_path) = cii_get_apppath();
+	cii_init_configs(TSRMLS_C);
+	CII_G(app_path) = cii_get_apppath(TSRMLS_C);
 	/*
 	*	Do not use CONST_PERSISTENT, because after load cii, ci can not register constant BASEPATH.
 	*/
-	REGISTER_MAIN_STRING_CONSTANT("BASEPATH", cii_get_apppath(), CONST_CS);
+	REGISTER_MAIN_STRING_CONSTANT("BASEPATH", cii_get_apppath(TSRMLS_C), CONST_CS);
 	/*
 	*	get the config item
 	*/
@@ -905,7 +905,7 @@ PHP_FUNCTION(cii_log_message)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss" ,&level, &level_len, &message, &message_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	char retval = cii_user_write_log(level, level_len, message, message_len);
+	char retval = cii_user_write_log(level, level_len, message, message_len TSRMLS_CC);
 	if( return_value_used ){
 		RETURN_BOOL(retval);
 	}
@@ -935,7 +935,7 @@ static void php_cii_globals_ctor(zend_cii_globals *cii_globals)
 	// /*
 	// *	init CII_G(CII_G(app_path))
 	// */
-	// cii_globals->CII_G(app_path) = cii_get_apppath();
+	// cii_globals->CII_G(app_path) = cii_get_apppath(TSRMLS_C);
 	// /*
 	// *	init CII_G(config_obj)
 	// */

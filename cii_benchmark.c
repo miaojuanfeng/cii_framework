@@ -68,7 +68,7 @@ PHP_METHOD(cii_benchmark, mark)
 /*
 *	Elapsed time
 */
-ZEND_API int elapsed_time_ex(zend_class_entry *cii_benchmark_ce, zval *cii_benchmark_obj, char *point1, uint point1_len, char *point2, uint point2_len, char decimals, char **elapsed_time)
+ZEND_API int elapsed_time_ex(zend_class_entry *cii_benchmark_ce, zval *cii_benchmark_obj, char *point1, uint point1_len, char *point2, uint point2_len, char decimals, char **elapsed_time TSRMLS_DC)
 {
 	if( !point1_len ){
 		CII_G(output_replace_elapsed_time)++;
@@ -123,7 +123,7 @@ PHP_METHOD(cii_benchmark, elapsed_time)
 	if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|ssl", &point1, &point1_len, &point2, &point2_len, &decimals) == FAILURE ){
 		WRONG_PARAM_COUNT;
 	}
-	retval = elapsed_time_ex(cii_benchmark_ce, getThis(), point1, point1_len, point2, point2_len, decimals, &elapsed_time);
+	retval = elapsed_time_ex(cii_benchmark_ce, getThis(), point1, point1_len, point2, point2_len, decimals, &elapsed_time TSRMLS_CC);
 	if( return_value_used ){
 		if( retval ){
 			RETURN_STRING(elapsed_time, 0);

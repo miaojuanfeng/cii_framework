@@ -34,7 +34,7 @@ PHP_METHOD(cii_uri, __construct)
 	zval **query;
 	// 这里要初始化一下，不然得不到$_SERVER
 	if (PG(auto_globals_jit)) {
-		zend_is_auto_global("_SERVER", sizeof("_SERVER")-1);
+		zend_is_auto_global("_SERVER", sizeof("_SERVER")-1 TSRMLS_CC);
 	}
 	server = PG(http_globals)[TRACK_VARS_SERVER];
 

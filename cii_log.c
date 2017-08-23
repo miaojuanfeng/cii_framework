@@ -31,7 +31,7 @@ PHP_METHOD(cii_log, __construct)
 			/*
 			*	output log
 			*/
-			cii_write_log(3, "Log Folder Created");
+			cii_write_log(3, "Log Folder Created" TSRMLS_CC);
 		}else{
 			/*
 			*	output log
@@ -42,12 +42,12 @@ PHP_METHOD(cii_log, __construct)
 	/*
 	*	output log
 	*/
-	cii_write_log(3, "Log Class Initialized");
+	cii_write_log(3, "Log Class Initialized" TSRMLS_CC);
 }
 /*
 * Write Log File
 */
-ZEND_API int cii_write_log(int level, char *message)
+ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 {
 	/*
 	* 0 = Disables logging, Error logging TURNED OFF
@@ -166,7 +166,7 @@ ZEND_API int cii_write_log(int level, char *message)
 /*
 *	cii_user_write_log
 */
-ZEND_API int cii_user_write_log(char *level, uint level_len, char *message, uint message_len)
+ZEND_API int cii_user_write_log(char *level, uint level_len, char *message, uint message_len TSRMLS_DC)
 {
 	char *log_threshold[4] = {"error", "debug", "info", "all"};
 	char *level_lower = zend_str_tolower_dup(level, level_len);
@@ -181,7 +181,7 @@ ZEND_API int cii_user_write_log(char *level, uint level_len, char *message, uint
 	}
 	efree(level_lower);
 	if( p >= 0 ){
-		return cii_write_log(p, message);
+		return cii_write_log(p, message TSRMLS_CC);
 	}
 	return 0;
 }
@@ -206,7 +206,7 @@ PHP_METHOD(cii_log, write_log)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss" ,&level, &level_len, &message, &message_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	char retval = cii_user_write_log(level, level_len, message, message_len);
+	char retval = cii_user_write_log(level, level_len, message, message_len TSRMLS_CC);
 	if( return_value_used ){
 		RETURN_BOOL(retval);
 	}

@@ -21,7 +21,8 @@ PHP_METHOD(cii_output, __construct)
 /*
 *	append_output
 */
-ZEND_API void cii_append_output(zend_class_entry *cii_output_ce, zval *cii_output_obj, char *output_str){
+ZEND_API void cii_append_output(zend_class_entry *cii_output_ce, zval *cii_output_obj, char *output_str TSRMLS_DC)
+{
 	zval *final_output = zend_read_property(cii_output_ce, cii_output_obj, "final_output", 12, 1 TSRMLS_CC);
 	
 	char *output_new;
@@ -53,7 +54,7 @@ PHP_METHOD(cii_output, append_output)
 		WRONG_PARAM_COUNT;
 	}
 	if( output && output_len ){
-		cii_append_output(cii_output_ce, getThis(), output);
+		cii_append_output(cii_output_ce, getThis(), output TSRMLS_CC);
 	}
 	if( return_value_used){
 		RETURN_ZVAL(getThis(), 1, 0);
@@ -69,7 +70,7 @@ ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint 
 	char *elapsed_time;
 	char elapsed_time_state;
 	
-	elapsed_time_state = elapsed_time_ex(cii_benchmark_ce, CII_G(benchmark_obj), "total_execution_time_start", 26, "total_execution_time_end", 24, 4, &elapsed_time);
+	elapsed_time_state = elapsed_time_ex(cii_benchmark_ce, CII_G(benchmark_obj), "total_execution_time_start", 26, "total_execution_time_end", 24, 4, &elapsed_time TSRMLS_CC);
 	/*
 	*	replace {elapsed_time}
 	*/
@@ -105,7 +106,7 @@ ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint 
 			if( retval ){
 				free_output_new = *output_new;
 			}
-			char *memory = _php_math_number_format((double)zend_memory_usage(0 TSRMLS_DC)/1024/1024, 2, '.', ',');
+			char *memory = _php_math_number_format((double)zend_memory_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
 			*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[14]);
 			efree(memory);
 			if( free_output_new ){
@@ -126,7 +127,7 @@ ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint 
 			if( retval ){
 				free_output_new = *output_new;
 			}
-			char *memory = _php_math_number_format((double)zend_memory_peak_usage(0 TSRMLS_DC)/1024/1024, 2, '.', ',');
+			char *memory = _php_math_number_format((double)zend_memory_peak_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
 			*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[13]);
 			efree(memory);
 			if( free_output_new ){
