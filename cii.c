@@ -961,7 +961,8 @@ static void php_cii_globals_dtor(zend_cii_globals *cii_globals)
  */
 PHP_MINIT_FUNCTION(cii)
 {
-	ZEND_INIT_MODULE_GLOBALS(cii, php_cii_globals_ctor, php_cii_globals_dtor);
+	// This line will get segment falut
+	// ZEND_INIT_MODULE_GLOBALS(cii, php_cii_globals_ctor, php_cii_globals_dtor);
 	//
 	ZEND_MINIT(cii_config)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_uri)(INIT_FUNC_ARGS_PASSTHRU);
