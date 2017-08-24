@@ -49,6 +49,8 @@ PHP_METHOD(cii_log, __construct)
 */
 ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 {
+	// This function Not working in Thread Safe mode. will fix it later.
+	return 1;
 	/*
 	* 0 = Disables logging, Error logging TURNED OFF
 	* 1 = Error Messages (including PHP errors)
