@@ -3,17 +3,6 @@
 zend_class_entry *cii_database_ce;
 zend_class_entry *cii_db_result_ce;
 
-#define CII_CALL_USER_METHOD_EX(object_ptr, function_name, retval_ptr, param_count, params) \
-    do{ \
-        zval *func_name; \
-        MAKE_STD_ZVAL(func_name); \
-        ZVAL_STRING(func_name, function_name, 1); \
-        if( call_user_function_ex(NULL, object_ptr, func_name, retval_ptr, param_count, params, 0, NULL TSRMLS_CC) == FAILURE ){ \
-            php_error(E_ERROR, "Call method failed: %s", function_name); \
-        } \
-        zval_ptr_dtor(&func_name); \
-    }while(0)
-
 /* }}} */
 /* The previous line is meant for vim and emacs, so it can correctly fold and 
    unfold functions in source code. See the corresponding marks just before 
