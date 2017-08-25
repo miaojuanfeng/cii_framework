@@ -624,6 +624,7 @@ PHP_FUNCTION(cii_run)
 						zval *loader_retval;
 						CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "model", &loader_retval, loader_param_count, loader_param);
 						zval_ptr_dtor(&loader_retval);
+						efree(loader_param);
 					}
 				}else{
 					php_error(E_WARNING, "Autoload 'model' item should be String or Array\n");
@@ -718,6 +719,7 @@ PHP_FUNCTION(cii_run)
 						zval *loader_retval;
 						CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "library", &loader_retval, loader_param_count, loader_param);
 						zval_ptr_dtor(&loader_retval);
+						efree(loader_param);
 					}
 				}else{
 					php_error(E_WARNING, "Autoload 'library' item should be String or Array\n");
@@ -804,7 +806,7 @@ PHP_FUNCTION(cii_run)
 	zend_hash_destroy(CII_G(view_symbol_table));
  	FREE_HASHTABLE(CII_G(view_symbol_table));
 
-	RETURN_ZVAL(CII_G(controller_obj), 0, 1);
+	RETURN_TRUE;
 }
 /* }}} */
 /* The previous line is meant for vim and emacs, so it can correctly fold and 

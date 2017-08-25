@@ -214,6 +214,7 @@ PHP_METHOD(cii_loader, model){
 	uint model_len;
 	char *name = NULL;
 	uint name_len = 0;
+	uint is_free_name = 0;
 	char *file;
 	uint file_len;
 
@@ -285,6 +286,7 @@ PHP_METHOD(cii_loader, model){
 			name = estrndup(model, model_len);
 			name_len = model_len;
 		}
+		is_free_name = 1;
 		name_lower = zend_str_tolower_dup(name, name_len);
 		name_lower_len = name_len;
 	}else{
@@ -340,9 +342,15 @@ PHP_METHOD(cii_loader, model){
 		zend_update_property(CII_G(controller_ce), CII_G(controller_obj), name, name_len, new_object TSRMLS_CC);
 		//
 		efree(name_lower);
+		if( is_free_name ){
+			efree(name);
+		}
 		RETURN_ZVAL(new_object, 1, 1);
 	}else{
 		efree(name_lower);
+		if( is_free_name ){
+			efree(name);
+		}
 		/*
 		*	return this
 		*/

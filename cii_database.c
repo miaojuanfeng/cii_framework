@@ -153,6 +153,7 @@ PHP_METHOD(cii_database, query)
 	zend_update_property(cii_database_ce, getThis(), "limit", 5, empty_str TSRMLS_CC);
 	zend_update_property(cii_database_ce, getThis(), "group_start", 11, empty_str TSRMLS_CC);
 	zend_update_property(cii_database_ce, getThis(), "group_end", 9, empty_str TSRMLS_CC);
+	zval_ptr_dtor(&empty_str);
 
 	RETURN_ZVAL(result_obj, 1, 1);
 }
