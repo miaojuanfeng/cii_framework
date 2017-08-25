@@ -805,7 +805,9 @@ PHP_FUNCTION(cii_run)
 	//
 	zend_hash_destroy(CII_G(view_symbol_table));
  	FREE_HASHTABLE(CII_G(view_symbol_table));
-
+ 	//
+ 	zval_ptr_dtor(&CII_G(controller_obj));
+ 	//
 	RETURN_TRUE;
 }
 /* }}} */
