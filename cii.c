@@ -945,27 +945,28 @@ static void php_cii_globals_ctor(zend_cii_globals *cii_globals)
 	// */
 	// MAKE_STD_ZVAL(cii_globals->configs);
 	// array_init(cii_globals->configs);
+	memset(cii_globals, 0, sizeof(zend_cii_globals));
 }
 
-static void php_cii_globals_dtor(zend_cii_globals *cii_globals)
-{
-	// 现在变成自动释放？
-	// if( cii_globals->cii_CII_G(controller_obj) ) zval_ptr_dtor(&cii_globals->cii_CII_G(controller_obj));
-	// if( cii_globals->CII_G(app_path) ) efree(cii_globals->CII_G(app_path));
-	// if( cii_globals->configs ) zval_ptr_dtor(&cii_globals->configs);
+// static void php_cii_globals_dtor(zend_cii_globals *cii_globals)
+// {
+// 	// 现在变成自动释放？
+// 	// if( cii_globals->cii_CII_G(controller_obj) ) zval_ptr_dtor(&cii_globals->cii_CII_G(controller_obj));
+// 	// if( cii_globals->CII_G(app_path) ) efree(cii_globals->CII_G(app_path));
+// 	// if( cii_globals->configs ) zval_ptr_dtor(&cii_globals->configs);
 
-	// efree(CII_G(app_path));
-	// zval_ptr_dtor(&configs);
-	// zval_ptr_dtor(&uri_obj);
-	// zval_ptr_dtor(&CII_G(router_obj));
-	// zval_ptr_dtor(&CII_G(loader_obj));
-	// zval_ptr_dtor(&CII_G(output_obj));
-}
+// 	// efree(CII_G(app_path));
+// 	// zval_ptr_dtor(&configs);
+// 	// zval_ptr_dtor(&uri_obj);
+// 	// zval_ptr_dtor(&CII_G(router_obj));
+// 	// zval_ptr_dtor(&CII_G(loader_obj));
+// 	// zval_ptr_dtor(&CII_G(output_obj));
+// }
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(cii)
 {
-	ZEND_INIT_MODULE_GLOBALS(cii, php_cii_globals_ctor, php_cii_globals_dtor);
+	ZEND_INIT_MODULE_GLOBALS(cii, php_cii_globals_ctor, NULL);
 	//
 	ZEND_MINIT(cii_config)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_uri)(INIT_FUNC_ARGS_PASSTHRU);
