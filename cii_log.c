@@ -39,6 +39,7 @@ PHP_METHOD(cii_log, __construct)
 			php_error(E_WARNING, "Create Log Folder Failed");
 		}
 	}
+	efree(filepath);
 	/*
 	*	output log
 	*/

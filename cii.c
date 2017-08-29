@@ -197,6 +197,10 @@ CII_API int cii_loader_import(char *path, int path_len, int include_once TSRMLS_
 			EG(active_op_array) = origin_op_array;
 			destroy_op_array(new_op_array TSRMLS_CC);
 			efree(new_op_array);
+
+			if( EG(return_value_ptr_ptr) && *EG(return_value_ptr_ptr) ){
+				zval_ptr_dtor(EG(return_value_ptr_ptr));
+			}
 		}
 	}
 	/* */
