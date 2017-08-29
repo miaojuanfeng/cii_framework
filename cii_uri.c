@@ -120,6 +120,7 @@ PHP_METHOD(cii_uri, __construct)
 					}
 		    		i++;
 	    	}
+	    	efree(file);
 	    	zval_dtor(&zdelim);
 	    	zval_ptr_dtor(&uri_arr);
 		}
