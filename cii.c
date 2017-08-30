@@ -769,26 +769,30 @@ PHP_FUNCTION(cii_run)
 	zval *run_method_retval;
 	CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), Z_STRVAL_PP(run_method), &run_method_retval, run_method_param_count, run_method_param);
 	zval_ptr_dtor(&run_method_retval);
-	/*
-	*	替换时间戳
-	*/
- 	zval *output;
-	MAKE_STD_ZVAL(output);
-	php_output_get_contents(output TSRMLS_CC);
-	php_output_discard(TSRMLS_C);
- 	/*
-	*  Send the final rendered output to the browser
-	*/
-	char *output_new;
-	uint output_new_len;
-	char retval;
-	// zval *output = zend_read_property(cii_output_ce, CII_G(output_obj), "final_output", 12, 1 TSRMLS_CC);
-	retval = cii_display(Z_STRVAL_P(output), Z_STRLEN_P(output), &output_new, &output_new_len TSRMLS_CC);
-	PHPWRITE(output_new, output_new_len);
-	if( retval ){
-		efree(output_new);
-	}
-	zval_ptr_dtor(&output);
+
+//  以下方法会随机产生Segment Fault，先不用
+	// /*
+	// *	替换时间戳
+	// */
+	// zval *output;
+	// MAKE_STD_ZVAL(output);
+	// php_output_get_contents(output TSRMLS_CC);
+	// php_output_discard(TSRMLS_C);
+	// /*
+	// *  Send the final rendered output to the browser
+	// */
+	// char *output_new;
+	// uint output_new_len;
+	// char retval;
+	// // zval *output = zend_read_property(cii_output_ce, CII_G(output_obj), "final_output", 12, 1 TSRMLS_CC);
+	// retval = cii_display(Z_STRVAL_P(output), Z_STRLEN_P(output), &output_new, &output_new_len TSRMLS_CC);
+	// PHPWRITE(output_new, output_new_len);
+	// if( retval ){
+	// 	efree(output_new);
+	// }
+	// zval_ptr_dtor(&output);
+//  以上方法会随机产生Segment Fault，先不用
+	
 	/*
 	*	释放内存，防止内存泄漏
 	*/
