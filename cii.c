@@ -792,7 +792,7 @@ PHP_FUNCTION(cii_run)
 	// }
 	// zval_ptr_dtor(&output);
 //  以上方法会随机产生Segment Fault，先不用
-	
+
 	/*
 	*	释放内存，防止内存泄漏
 	*/
@@ -905,6 +905,8 @@ PHP_FUNCTION(cii_redirect)
 	zval *header_retval;
 	CII_CALL_USER_FUNCTION_EX(EG(function_table), NULL, "header", &header_retval, 1, header_param);
 	zval_ptr_dtor(&header_retval);
+
+	zval_ptr_dtor(&header);
 }
 
 PHP_FUNCTION(cii_log_message)

@@ -219,6 +219,7 @@ PHP_METHOD(cii_database, from)
 		MAKE_STD_ZVAL(from);
 		ZVAL_STRING(from, query, 0);
 		zend_update_property(cii_database_ce, getThis(), "from", 4, from TSRMLS_CC);
+		zval_ptr_dtor(&from);
 	}else if( Z_TYPE_P(from) == IS_STRING ){
 		char *query;
 		spprintf(&query, 0, " FROM %s", table);
@@ -250,6 +251,7 @@ PHP_METHOD(cii_database, where)
 		MAKE_STD_ZVAL(where);
 		ZVAL_STRING(where, query, 0);
 		zend_update_property(cii_database_ce, getThis(), "where", 5, where TSRMLS_CC);
+		zval_ptr_dtor(&where);
 	}else if( Z_TYPE_P(where) == IS_STRING ){
 		char *query;
 		spprintf(&query, 0, " %s AND %s = '%s'", Z_STRVAL_P(where), key, value);
@@ -398,6 +400,7 @@ PHP_METHOD(cii_database, get)
 		php_error(E_ERROR, "Call CII_Database::query function failed");
 	}
 	zval_ptr_dtor(&func_name);
+	zval_ptr_dtor(&query_query);
 	//
 	RETURN_ZVAL(retval, 1, 1);
 }
@@ -787,6 +790,7 @@ PHP_METHOD(cii_db_result, result)
 					//RETURN_ZVAL(retval_copy, 1, 1);
 				}
 			}
+			zval_ptr_dtor(&retval_copy);
 			//
 			RETURN_ZVAL(retval, 1, 1);
 		}else{
