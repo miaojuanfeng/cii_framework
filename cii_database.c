@@ -283,6 +283,7 @@ PHP_METHOD(cii_database, order_by)
 		MAKE_STD_ZVAL(order_by);
 		ZVAL_STRING(order_by, query, 0);
 		zend_update_property(cii_database_ce, getThis(), "order_by", 8, order_by TSRMLS_CC);
+		zval_ptr_dtor(&order_by);
 	}else if( Z_TYPE_P(order_by) == IS_STRING ){
 		char *query;
 		spprintf(&query, 0, " ORDER BY %s %s", order, ascend);
@@ -490,6 +491,7 @@ PHP_METHOD(cii_database, insert)
 	}
 	zval_ptr_dtor(&func_name);
 	zval_ptr_dtor(&query_query);
+	efree(query);
 	//
 	RETURN_ZVAL(retval, 1, 1);
 }
@@ -572,6 +574,7 @@ PHP_METHOD(cii_database, update)
 	}
 	zval_ptr_dtor(&func_name);
 	zval_ptr_dtor(&query_query);
+	efree(query);
 	//
 	RETURN_ZVAL(retval, 1, 1);
 }
@@ -704,6 +707,7 @@ PHP_METHOD(cii_database, or_where)
 		MAKE_STD_ZVAL(where);
 		ZVAL_STRING(where, query, 0);
 		zend_update_property(cii_database_ce, getThis(), "where", 5, where TSRMLS_CC);
+		zval_ptr_dtor(&where);
 	}else if( Z_TYPE_P(where) == IS_STRING ){
 		char *query;
 		spprintf(&query, 0, " %s OR %s = '%s'", Z_STRVAL_P(where), key, value);
