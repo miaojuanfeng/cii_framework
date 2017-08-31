@@ -318,6 +318,7 @@ PHP_METHOD(cii_database, limit)
 		MAKE_STD_ZVAL(limit);
 		ZVAL_STRING(limit, query, 0);
 		zend_update_property(cii_database_ce, getThis(), "limit", 5, limit TSRMLS_CC);
+		zval_ptr_dtor(&limit);
 	}else if( Z_TYPE_P(limit) == IS_STRING ){
 		char *query;
 		if( offset && offset_len ){
@@ -488,6 +489,7 @@ PHP_METHOD(cii_database, insert)
 		php_error(E_ERROR, "Call CII_Database::query function failed");
 	}
 	zval_ptr_dtor(&func_name);
+	zval_ptr_dtor(&query_query);
 	//
 	RETURN_ZVAL(retval, 1, 1);
 }
@@ -569,6 +571,7 @@ PHP_METHOD(cii_database, update)
 		php_error(E_ERROR, "Call CII_Database::query function failed");
 	}
 	zval_ptr_dtor(&func_name);
+	zval_ptr_dtor(&query_query);
 	//
 	RETURN_ZVAL(retval, 1, 1);
 }
@@ -649,6 +652,7 @@ PHP_METHOD(cii_database, delete)
 		php_error(E_ERROR, "Call CII_Database::query function failed");
 	}
 	zval_ptr_dtor(&func_name);
+	zval_ptr_dtor(&query_query);
 	//
 	RETURN_ZVAL(retval, 1, 1);
 }

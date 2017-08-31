@@ -769,6 +769,9 @@ PHP_FUNCTION(cii_run)
 	zval *run_method_retval;
 	CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), Z_STRVAL_PP(run_method), &run_method_retval, run_method_param_count, run_method_param);
 	zval_ptr_dtor(&run_method_retval);
+	if( run_method_param ){
+		efree(run_method_param);
+	}
 
 //  以下方法会随机产生Segment Fault，先不用
 	// /*
