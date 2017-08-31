@@ -1,4 +1,4 @@
-#include "cii_database.h"
+﻿#include "cii_database.h"
 
 zend_class_entry *cii_database_ce;
 zend_class_entry *cii_db_result_ce;
@@ -101,6 +101,12 @@ PHP_METHOD(cii_database, query)
 	zval **query[1];
 	zval *result_obj;
 
+	zend_class_entry **mysqli_result_ce;
+	zval *result_affected_rows;
+	zval *result_insert_id;
+
+	zval *empty_str;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &sql) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
@@ -118,9 +124,7 @@ PHP_METHOD(cii_database, query)
 	//
 	zend_update_property(cii_database_ce, getThis(), "last_query", 10, sql TSRMLS_CC);
 	/* update affected_rows */
-	zend_class_entry **mysqli_result_ce;
-	zval *result_affected_rows;
-	zval *result_insert_id;
+	
 	if( zend_hash_find(EG(class_table), "mysqli_result", 14, (void**)&mysqli_result_ce) == FAILURE ){
 		zend_error(E_ERROR, "mysqli class has not initialized yet");
 	}
@@ -144,7 +148,6 @@ PHP_METHOD(cii_database, query)
 	zend_update_property(cii_db_result_ce, result_obj, "result_id", 9, retval TSRMLS_CC);
 	zval_ptr_dtor(&retval);
 
-	zval *empty_str;
 	MAKE_STD_ZVAL(empty_str);
 	ZVAL_NULL(empty_str);
 	zend_update_property(cii_database_ce, getThis(), "from", 4, empty_str TSRMLS_CC);
@@ -345,6 +348,11 @@ PHP_METHOD(cii_database, get)
 	char *query;
 	uint query_len;
 	zval *last_query;
+
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
 	
 	select = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("select"), 1 TSRMLS_CC);
 	from = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("from"), 1 TSRMLS_CC);
@@ -386,10 +394,6 @@ PHP_METHOD(cii_database, get)
 	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
 	zval_ptr_dtor(&last_query);
 	//
-	zval *func_name;
-	zval *retval;
-	zval *query_query;
-	zval **query_param[1];
 
 	MAKE_STD_ZVAL(query_query);
 	ZVAL_STRING(query_query, query, 1);
@@ -415,20 +419,28 @@ PHP_METHOD(cii_database, insert)
 	uint query_len;
 	zval *last_query;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &values) == FAILURE) {
-		WRONG_PARAM_COUNT;
-	}
-
 	char *key;
 	uint key_len;
 	ulong idx;
 	zval **value;
-	/*
-	* using HashPosition pos to make sure not modify data's hashtable internal pointer
-	*/
+
 	HashPosition pos;
 	char *query_keys = NULL;
 	char *query_values = NULL;
+
+	char *p;
+
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &values) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+	/*
+	* using HashPosition pos to make sure not modify data's hashtable internal pointer
+	*/
 	for(zend_hash_internal_pointer_reset_ex(values, &pos);
 	    zend_hash_has_more_elements_ex(values, &pos) == SUCCESS;
 	    zend_hash_move_forward_ex(values, &pos)){
@@ -463,7 +475,7 @@ PHP_METHOD(cii_database, insert)
 			spprintf(&query_values, 0, "'%s'", Z_STRVAL_PP(value));
 		}
 	}
-	char *p = query;
+	p = query;
 	query_len = spprintf(&query, 0, "INSERT INTO %s(%s) VALUES(%s)", Z_STRVAL_P(from), query_keys, query_values);
 	if(p){
 		efree(p);
@@ -474,10 +486,6 @@ PHP_METHOD(cii_database, insert)
 	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
 	zval_ptr_dtor(&last_query);
 	//
-	zval *func_name;
-	zval *retval;
-	zval *query_query;
-	zval **query_param[1];
 
 	MAKE_STD_ZVAL(query_query);
 	ZVAL_STRING(query_query, query, 1);
@@ -505,20 +513,26 @@ PHP_METHOD(cii_database, update)
 	uint query_len;
 	zval *last_query;
 
+	char *key;
+	uint key_len;
+	ulong idx;
+	zval **value;
+	HashPosition pos;
+
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &set) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
 
 	where = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("where"), 1 TSRMLS_CC);
 
-	char *key;
-	uint key_len;
-	ulong idx;
-	zval **value;
 	/*
 	* using HashPosition pos to make sure not modify data's hashtable internal pointer
 	*/
-	HashPosition pos;
 	for(zend_hash_internal_pointer_reset_ex(set, &pos);
 	    zend_hash_has_more_elements_ex(set, &pos) == SUCCESS;
 	    zend_hash_move_forward_ex(set, &pos)){
@@ -557,10 +571,6 @@ PHP_METHOD(cii_database, update)
 	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
 	zval_ptr_dtor(&last_query);
 	//
-	zval *func_name;
-	zval *retval;
-	zval *query_query;
-	zval **query_param[1];
 
 	MAKE_STD_ZVAL(query_query);
 	ZVAL_STRING(query_query, query, 1);
@@ -587,18 +597,25 @@ PHP_METHOD(cii_database, delete)
 	uint query_len;
 	zval *last_query;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &where) == FAILURE) {
-		WRONG_PARAM_COUNT;
-	}
-
 	char *key;
 	uint key_len;
 	ulong idx;
 	zval **value;
+
+	HashPosition pos;
+	char *p;
+
+	zval *func_name;
+	zval *retval;
+	zval *query_query;
+	zval **query_param[1];
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zH", &from, &where) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
 	/*
 	* using HashPosition pos to make sure not modify data's hashtable internal pointer
 	*/
-	HashPosition pos;
 	for(zend_hash_internal_pointer_reset_ex(where, &pos);
 	    zend_hash_has_more_elements_ex(where, &pos) == SUCCESS;
 	    zend_hash_move_forward_ex(where, &pos)){
@@ -624,7 +641,7 @@ PHP_METHOD(cii_database, delete)
 			query_len = spprintf(&query, 0, "WHERE %s = '%s'", key, Z_STRVAL_PP(value));
 		}
 	}
-	char *p = query;
+	p = query;
 	if( query ){
 		query_len = spprintf(&query, 0, "DELETE FROM %s %s", Z_STRVAL_P(from), query);
 	}else{
@@ -639,10 +656,6 @@ PHP_METHOD(cii_database, delete)
 	zend_update_property(cii_database_ce, getThis(), "last_query", 10, last_query TSRMLS_CC);
 	zval_ptr_dtor(&last_query);
 	//
-	zval *func_name;
-	zval *retval;
-	zval *query_query;
-	zval **query_param[1];
 
 	MAKE_STD_ZVAL(query_query);
 	ZVAL_STRING(query_query, query, 1);
@@ -752,6 +765,9 @@ PHP_METHOD(cii_db_result, result)
 		result_id = zend_read_property(cii_db_result_ce, getThis(), ZEND_STRL("result_id"), 1 TSRMLS_CC);
 		
 		if( Z_TYPE_P(result_id) != IS_BOOL ){
+			zval *retval_copy;
+			zend_class_entry **std_class_ce;
+
 			MAKE_STD_ZVAL(mysql_assoc);
 			ZVAL_LONG(mysql_assoc, 1);
 
@@ -767,12 +783,12 @@ PHP_METHOD(cii_db_result, result)
 
 			zend_update_property(cii_db_result_ce, getThis(), "result_array", 12, retval TSRMLS_CC);
 			//
-			zval *retval_copy;
+			
 			ALLOC_ZVAL(retval_copy);
 			INIT_PZVAL_COPY(retval_copy, retval);
 			zval_copy_ctor(retval_copy);
 			//
-			zend_class_entry **std_class_ce;
+			
 			if( Z_TYPE_P(retval_copy) == IS_ARRAY && zend_hash_find(EG(class_table), "stdclass", 9, (void**)&std_class_ce) != FAILURE ){
 				HashPosition pos;
 				char *key;

@@ -1,4 +1,4 @@
-#include "cii_lang.h"
+﻿#include "cii_lang.h"
 
 zend_class_entry *cii_lang_ce;
 /**
@@ -10,10 +10,11 @@ zend_class_entry *cii_lang_ce;
 */
 PHP_METHOD(cii_lang, __construct)
 {
+	zval *language;
+	zval *is_loaded;
 	/*
 	*	init cii_lang::language
 	*/
-	zval *language;
 	MAKE_STD_ZVAL(language);
 	array_init(language);
 	zend_update_property(cii_lang_ce, getThis(), ZEND_STRL("language"), language TSRMLS_CC);
@@ -21,7 +22,6 @@ PHP_METHOD(cii_lang, __construct)
 	/*
 	*	init cii_lang::is_loaded
 	*/
-	zval *is_loaded;
 	MAKE_STD_ZVAL(is_loaded);
 	array_init(is_loaded);
 	zend_update_property(cii_lang_ce, getThis(), ZEND_STRL("is_loaded"), is_loaded TSRMLS_CC);
@@ -34,17 +34,25 @@ PHP_METHOD(cii_lang, __construct)
 /*
 *	load language file
 */
-ZEND_API int cii_load_lang(zend_class_entry *cii_lang_ce, zval *cii_lang_obj, char *file, uint len, char *langfile, uint langfile_len, zval *idiom, char is_return, zval **pDest TSRMLS_DC)
+int cii_load_lang(zend_class_entry *cii_lang_ce, zval *cii_lang_obj, char *file, uint len, char *langfile, uint langfile_len, zval *idiom, char is_return, zval **pDest TSRMLS_DC)
 {
+	zval **lang;
+	zval *is_loaded;
+	zval *language;
+
+	HashTable *old_active_symbol_table;
+
 	if (zend_hash_exists(&EG(included_files), file, len+1)) {
 		return 1;
 	}
 
-	CII_ALLOC_ACTIVE_SYMBOL_TABLE();
+	// CII_ALLOC_ACTIVE_SYMBOL_TABLE();
+    old_active_symbol_table = EG(active_symbol_table);
+    ALLOC_HASHTABLE(EG(active_symbol_table));
+    zend_hash_init(EG(active_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
 
 	cii_loader_import(file, len, 0 TSRMLS_CC);
 
-	zval **lang;
 	if( zend_hash_find(EG(active_symbol_table), "lang", 5, (void**)&lang) == FAILURE ){
 		if( idiom && Z_STRLEN_P(idiom) ){
 			php_error(E_WARNING, "Language file contains no data: language/%s/%s", Z_STRVAL_P(idiom), langfile);
@@ -61,11 +69,11 @@ ZEND_API int cii_load_lang(zend_class_entry *cii_lang_ce, zval *cii_lang_obj, ch
 		return 1;
 	}
 
-	zval *is_loaded = zend_read_property(cii_lang_ce, cii_lang_obj, ZEND_STRL("is_loaded"), 1 TSRMLS_CC);
+	is_loaded = zend_read_property(cii_lang_ce, cii_lang_obj, ZEND_STRL("is_loaded"), 1 TSRMLS_CC);
 	Z_ADDREF_P(idiom);
 	zend_hash_update(Z_ARRVAL_P(is_loaded), langfile, langfile_len+1, &idiom, sizeof(zval *), NULL);
 
-	zval *language = zend_read_property(cii_lang_ce, cii_lang_obj, ZEND_STRL("language"), 1 TSRMLS_CC);
+	language = zend_read_property(cii_lang_ce, cii_lang_obj, ZEND_STRL("language"), 1 TSRMLS_CC);
 	php_array_merge(Z_ARRVAL_P(language), Z_ARRVAL_P(*lang), 0 TSRMLS_CC);
 
 	CII_DESTROY_ACTIVE_SYMBOL_TABLE();
@@ -117,6 +125,9 @@ PHP_METHOD(cii_lang, load)
 		for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(langfile), &pos);
 		    zend_hash_has_more_elements_ex(Z_ARRVAL_P(langfile), &pos) == SUCCESS;
 		    zend_hash_move_forward_ex(Z_ARRVAL_P(langfile), &pos)){
+			char *p = NULL, orig;
+			char *fullfile;
+			uint fullfile_len;
 
 			if(zend_hash_get_current_data_ex(Z_ARRVAL_P(langfile), (void**)&value, &pos) == FAILURE){
 				continue;
@@ -124,9 +135,6 @@ PHP_METHOD(cii_lang, load)
 			/*
 			*	check lang file name
 			*/
-			char *p = NULL, orig;
-			char *fullfile;
-			uint fullfile_len;
 			if( Z_STRLEN_PP(value) > 9 && (p = Z_STRVAL_PP(value)+ (Z_STRLEN_PP(value)-9)) && !strcmp(p, "_lang.php") ){
 				orig = *p;
 				*p = '\0';

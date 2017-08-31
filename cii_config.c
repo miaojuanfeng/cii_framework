@@ -1,4 +1,4 @@
-#include "cii_config.h"
+﻿#include "cii_config.h"
 
 zend_class_entry *cii_config_ce;
 /**
@@ -12,6 +12,7 @@ zend_class_entry *cii_config_ce;
 */
 PHP_METHOD(cii_config, __construct)
 {
+	zval **base_url;
 	/*
 	* 	init cii_config::config
 	*/
@@ -59,7 +60,6 @@ PHP_METHOD(cii_config, __construct)
 	// 	zend_hash_update(Z_ARRVAL_P(config), "base_url", 9, &base_url, sizeof(zval *), NULL);
 	// }
 
-	zval **base_url;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
 		zval *server;
 		zval **server_name;
@@ -94,7 +94,7 @@ PHP_METHOD(cii_config, __construct)
 /*
 *	cii_config_item
 */
-ZEND_API zval* cii_config_item(char *item, uint item_len, char *index, uint index_len)
+zval* cii_config_item(char *item, uint item_len, char *index, uint index_len)
 {
 	TSRMLS_FETCH();
 
@@ -146,7 +146,7 @@ PHP_METHOD(cii_config, item)
 /*
 *	cii_config_slash_item
 */
-ZEND_API char* cii_config_slash_item(char *item, uint item_len, char *index, uint index_len, char *need_free)
+char* cii_config_slash_item(char *item, uint item_len, char *index, uint index_len, char *need_free)
 {
 	zval *retval;
 	*need_free = 0;
@@ -206,7 +206,7 @@ PHP_METHOD(cii_config, slash_item)
 * @param	string|string[]	$uri	URI string or an array of segments
 * @return	string
 */
-ZEND_API char* cii_uri_string(zval *uri TSRMLS_DC)
+char* cii_uri_string(zval *uri TSRMLS_DC)
 {
 	if( !uri ){
 		return NULL;
@@ -229,21 +229,23 @@ ZEND_API char* cii_uri_string(zval *uri TSRMLS_DC)
     	}
 		return estrndup(p, p_len);
 	}else if( Z_TYPE_P(uri) == IS_ARRAY ){
+		zval *delim;
+		zval *retval;
+
+		char *retstr, *p;
+    	uint p_len;
 		/*
 		*	implode uri
 		*/
-		zval *delim;
 		MAKE_STD_ZVAL(delim);
     	ZVAL_STRINGL(delim, "/", 1, 1);
-    	zval *retval;
+    	
     	MAKE_STD_ZVAL(retval);
     	php_implode(delim, uri, retval TSRMLS_CC);
     	zval_ptr_dtor(&delim);
     	/*
     	*	trim($retval, '/');
     	*/
-    	char *retstr, *p;
-    	uint p_len;
     	p = Z_STRVAL_P(retval);
     	p_len = Z_STRLEN_P(retval);
     	if( *p == '/' ){
@@ -278,25 +280,33 @@ PHP_METHOD(cii_config, site_url)
 	zval *uri = NULL;
 	char *protocol = NULL;
 	uint protocol_len;
+
+	char need_free;
+	char *base_url;
+	zval *index_page;
+
+	char *uri_str;
+
+	char *p;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|z!s!", &uri, &protocol, &protocol_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	char need_free;
-	char *base_url = cii_config_slash_item("base_url", 8, NULL, 0, &need_free);
-	zval *index_page = cii_config_item("index_page", 10, NULL, 0);
+	
+	base_url = cii_config_slash_item("base_url", 8, NULL, 0, &need_free);
+	index_page = cii_config_item("index_page", 10, NULL, 0);
 
 	//php_printf("%s\n", base_url);
 	//if(index_page) php_printf("%s\n", Z_STRVAL_P(index_page));
 	//php_printf("%s\n", strstr(base_url,"://"));
 
-	char *uri_str;
 	if( uri ){
 		uri_str = cii_uri_string(uri TSRMLS_CC);
 	}
 	/*
 	*	long code for allocate memory only once
 	*/
-	char *p = base_url;
+	p = base_url;
 	if( protocol ){
 		if( index_page ){	
 			if( Z_TYPE_P(index_page) != IS_STRING ){
@@ -362,23 +372,28 @@ PHP_METHOD(cii_config, base_url)
 	zval *uri = NULL;
 	char *protocol = NULL;
 	uint protocol_len;
+	char need_free;
+	char *base_url;
+
+	char *uri_str;
+	char *p;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|z!s!", &uri, &protocol, &protocol_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	char need_free;
-	char *base_url = cii_config_slash_item("base_url", 8, NULL, 0, &need_free);
+	
+	base_url = cii_config_slash_item("base_url", 8, NULL, 0, &need_free);
 
     //php_printf("%s\n", base_url);
 	//php_printf("%s\n", strstr(base_url,"://"));
 
-	char *uri_str;
 	if( uri ){
 		uri_str = cii_uri_string(uri TSRMLS_CC);
 	}
 	/*
 	*	long code for allocate memory only once
 	*/
-	char *p = base_url;
+	p = base_url;
 	if( protocol ){
 		if( !uri ){
 			spprintf(&base_url, 0, "%s%s", protocol, strstr(base_url,"://"));
@@ -420,10 +435,12 @@ PHP_METHOD(cii_config, set_item)
 	uint item_len;
 	zval *value;
 	zval **value_ptr;
+	zval *config;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz", &item, &item_len, &value) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *config = CII_G(configs);
+	config = CII_G(configs);
 	value_ptr = &value;
 	CII_IF_ISREF_THEN_SEPARATE_ELSE_ADDREF(value_ptr);	
 	zend_hash_update(Z_ARRVAL_P(config), item, item_len+1, value_ptr, sizeof(zval *), NULL);

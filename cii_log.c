@@ -10,10 +10,12 @@ zend_class_entry *cii_log_ce;
 */
 PHP_METHOD(cii_log, __construct)
 {
+	zval **logs_path;
+	char *filepath;
 	/*
 	*	logs filepath
 	*/
-	zval **logs_path;
+	
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
 		Z_TYPE_PP(logs_path) != IS_STRING || Z_STRLEN_PP(logs_path) == 0 ){
 		php_error(E_ERROR, "Your config 'logs_path' does not appear to be formatted correctly.");
@@ -21,7 +23,7 @@ PHP_METHOD(cii_log, __construct)
 	/*
 	*	set filepath
 	*/
-	char *filepath;
+	
 	spprintf(&filepath, 0, "%s/%s", CII_G(app_path), Z_STRVAL_PP(logs_path));
 	/*
 	*	directory not exists, create the directory
@@ -48,8 +50,17 @@ PHP_METHOD(cii_log, __construct)
 /*
 * Write Log File
 */
-ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
+int cii_write_log(int level, char *message TSRMLS_DC)
 {
+	static int log_threshold = 4;
+	char filename[19];
+	time_t t;
+	zval **logs_path;
+	char *filepath;
+	char *level_upper;
+	char time[20];
+	FILE *f;
+
 	// This function Not working in Thread Safe mode. will fix it later.
 	return 1;
 	/*
@@ -59,7 +70,7 @@ ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 	* 3 = Informational Messages
 	* 4 = All Messages
 	*/
-	static int log_threshold = 4;
+	
 	/*
 	*	if disables logging
 	*/
@@ -75,16 +86,14 @@ ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 	/*
 	*	get time
 	*/
-	time_t t = time(NULL);
+	t = time(NULL);
 	/*
 	*	set filename
 	*/
-	char filename[19];   
 	strftime(filename, 19, "log-%Y-%m-%d.php", localtime(&t));
 	/*
 	*	logs filepath
 	*/
-	zval **logs_path;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
 		Z_TYPE_PP(logs_path) != IS_STRING || Z_STRLEN_PP(logs_path) == 0 ){
 		php_error(E_ERROR, "Your config 'logs_path' does not appear to be formatted correctly.");
@@ -92,12 +101,10 @@ ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 	/*
 	*	set filepath
 	*/
-	char *filepath;
 	spprintf(&filepath, 0, "%s/%s/%s", CII_G(app_path), Z_STRVAL_PP(logs_path), filename);
 	/*
 	*	set level title
 	*/
-	char *level_upper;
 	if( level == 1 ){
 		level_upper = "ERROR";
 	}else if( level == 2 ){
@@ -110,16 +117,17 @@ ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 	/*
 	*	get time
 	*/
-	char time[20];
 	strftime(time, 20, "%Y-%m-%d %H:%M:%S", localtime(&t));
 	/*
 	*	open file to write log
 	*/
-	FILE *f;
 	/*
 	*	open new file
 	*/
 	if( access(filepath, 0) ){	
+		char *access;
+		char *log;
+
 		if( (f = fopen(filepath, "a")) == NULL ){
 			php_error(E_WARNING, "Cannot open log file: %s", filepath);
 			efree(filepath);
@@ -128,14 +136,12 @@ ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 		/*
 		*	write access
 		*/
-		char *access;
 		spprintf(&access, 0, "<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>\r\n\r\n");
 		fputs(access, f);
 		efree(access);
 		/*
 		*	write log
 		*/
-		char *log;
 		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", time, " --> ", message, "\r\n");
 		fputs(log, f);
 		efree(log);
@@ -143,6 +149,8 @@ ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 	*	open exists file
 	*/
 	}else{
+		char *log;
+
 		if( (f = fopen(filepath, "a")) == NULL ){
 			php_error(E_WARNING, "Cannot open log file: %s", filepath);
 			efree(filepath);
@@ -151,7 +159,6 @@ ZEND_API int cii_write_log(int level, char *message TSRMLS_DC)
 		/*
 		*	write log
 		*/
-		char *log;
 		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", time, " --> ", message, "\r\n");
 		fputs(log, f);
 		efree(log);
@@ -205,11 +212,13 @@ PHP_METHOD(cii_log, write_log)
 	uint level_len;
 	char *message;
 	uint message_len;
+
+	char retval;
 	
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss" ,&level, &level_len, &message, &message_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	char retval = cii_user_write_log(level, level_len, message, message_len TSRMLS_CC);
+	retval = cii_user_write_log(level, level_len, message, message_len TSRMLS_CC);
 	if( return_value_used ){
 		RETURN_BOOL(retval);
 	}

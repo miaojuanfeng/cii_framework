@@ -1,4 +1,4 @@
-#include "cii_loader.h"
+﻿#include "cii_loader.h"
 
 zend_class_entry *cii_loader_ce;
 
@@ -9,14 +9,16 @@ ZEND_END_ARG_INFO()
 /*
 *	function cii___get()
 */
-ZEND_API void cii___get(INTERNAL_FUNCTION_PARAMETERS)
+void cii___get(INTERNAL_FUNCTION_PARAMETERS)
 {
 	char *key;
 	uint key_len;
+	zval *value;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *value = zend_read_property(CII_G(controller_ce), CII_G(controller_obj), key, key_len, 1 TSRMLS_CC);
+	value = zend_read_property(CII_G(controller_ce), CII_G(controller_obj), key, key_len, 1 TSRMLS_CC);
 	RETURN_ZVAL(value, 1, 0);
 }
 
@@ -77,6 +79,8 @@ PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提
 
 	HashTable *old_active_symbol_table;
 
+	zval **views_path;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|H!b" ,&view, &view_len, &data, &is_return) == FAILURE) {
 		RETURN_ZVAL(getThis(), 1, 0);
 	}
@@ -88,7 +92,7 @@ PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提
 	// if( !CII_G(apppath) ){
 	// 	cii_get_apppath();
 	// }
-	zval **views_path;
+	
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "views_path", 11, (void**)&views_path) == FAILURE ||
 		Z_TYPE_PP(views_path) != IS_STRING || Z_STRLEN_PP(views_path) == 0 ){
 		php_error(E_ERROR, "Your config 'views_path' does not appear to be formatted correctly.");
@@ -225,6 +229,8 @@ PHP_METHOD(cii_loader, model){
 	char *name_lower;
 	uint name_lower_len;
 
+	zval **models_path;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &model, &model_len, &name, &name_len) == FAILURE){
 		RETURN_NULL();
 	}
@@ -237,7 +243,6 @@ PHP_METHOD(cii_loader, model){
 	/*
 	*	model filepath
 	*/
-	zval **models_path;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "models_path", 12, (void**)&models_path) == FAILURE ||
 		Z_TYPE_PP(models_path) != IS_STRING || Z_STRLEN_PP(models_path) == 0 ){
 		php_error(E_ERROR, "Your config 'models_path' does not appear to be formatted correctly.");
@@ -372,6 +377,8 @@ PHP_METHOD(cii_loader, helper){
 
 	HashTable *old_active_symbol_table;
 
+	zval **helper_path;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &helper, &helper_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
@@ -383,7 +390,6 @@ PHP_METHOD(cii_loader, helper){
 	/*
 	*	helper filepath
 	*/
-	zval **helper_path;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "helpers_path", 13, (void**)&helper_path) == FAILURE ||
 		Z_TYPE_PP(helper_path) != IS_STRING || Z_STRLEN_PP(helper_path) == 0 ){
 		php_error(E_ERROR, "Your config 'helpers_path' does not appear to be formatted correctly.");
@@ -443,6 +449,8 @@ PHP_METHOD(cii_loader, library){
 	zval *new_object;
 	char *name_lower;
 
+	zval **libraries_path;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &library, &library_len, &name, &name_len) == FAILURE){
 		RETURN_NULL();
 	}
@@ -455,7 +463,7 @@ PHP_METHOD(cii_loader, library){
 	/*
 	*	library filepath
 	*/
-	zval **libraries_path;
+	
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "libraries_path", 15, (void**)&libraries_path) == FAILURE ||
 		Z_TYPE_PP(libraries_path) != IS_STRING || Z_STRLEN_PP(libraries_path) == 0 ){
 		php_error(E_ERROR, "Your config 'libraries_path' does not appear to be formatted correctly.");

@@ -1,4 +1,4 @@
-#include "cii_uri.h"
+﻿#include "cii_uri.h"
 
 zend_class_entry *cii_uri_ce;
 
@@ -11,10 +11,22 @@ zend_class_entry *cii_uri_ce;
 */
 PHP_METHOD(cii_uri, __construct)
 {
+	zval *segments;
+	zval *rsegments;
+
+	zval *server;
+	zval **query;
+
+	uint dir_i = 0;
+
+	char *dir = NULL;
+	zval **dir_seg;
+	uint j=1;
+
+	zval **class, **method;
 	/*
 	*	init cii_uri::segments
 	*/
-	zval *segments;
 	MAKE_STD_ZVAL(segments);
 	array_init(segments);
 	zend_update_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), segments TSRMLS_CC);
@@ -22,7 +34,6 @@ PHP_METHOD(cii_uri, __construct)
 	/*
 	*	init cii_uri::rsegments
 	*/
-	zval *rsegments;
 	MAKE_STD_ZVAL(rsegments);
 	array_init(rsegments);
 	zend_update_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), rsegments TSRMLS_CC);
@@ -30,8 +41,6 @@ PHP_METHOD(cii_uri, __construct)
 	/*
 	*	fetch uri
 	*/
-	zval *server;
-	zval **query;
 	// 这里要初始化一下，不然得不到$_SERVER
 	if (PG(auto_globals_jit)) {
 		zend_is_auto_global("_SERVER", sizeof("_SERVER")-1 TSRMLS_CC);
@@ -42,8 +51,6 @@ PHP_METHOD(cii_uri, __construct)
 // MAKE_STD_ZVAL(test);
 // ZVAL_STRING(test, "cms/groupbusiness/select", 1);
 // zend_hash_update(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), &test, sizeof(zval *), NULL);
-
-	uint dir_i = 0;
 
     if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "PATH_INFO", sizeof("PATH_INFO"), (void**)&query) && Z_TYPE_PP(query) == IS_STRING ){
 
@@ -62,10 +69,20 @@ PHP_METHOD(cii_uri, __construct)
 		ZVAL_STRINGL(&zstr, p, p_len, 1);
 
 		if( p_len > 0 ){
+			zval *uri_string;
+			zval zdelim;
+			zval *uri_arr;
+
+			uint i = 1;
+	    	uint uri_i = 1;
+	    	HashPosition pos;
+	    	zval **value;
+
+	    	char *file = NULL;
+	    	zval **controllers_path;
 			/*
 			*	update cii_uri::uri_string
 			*/
-			zval *uri_string;
 			MAKE_STD_ZVAL(uri_string);
 			ZVAL_COPY_VALUE(uri_string, &zstr);
 			zval_copy_ctor(uri_string);
@@ -74,22 +91,14 @@ PHP_METHOD(cii_uri, __construct)
 			/*
 			*	explode uri
 			*/
-			zval zdelim;
 	    	ZVAL_STRINGL(&zdelim, "/", 1, 1);
-	    	zval *uri_arr;
+	    	
 	    	MAKE_STD_ZVAL(uri_arr);
 	    	array_init(uri_arr);
 	    	php_explode(&zdelim, &zstr, uri_arr, LONG_MAX);
 	    	/*
 			*	update cii_uri::segments
 			*/
-	    	uint i = 1;
-	    	uint uri_i = 1;
-	    	HashPosition pos;
-	    	zval **value;
-
-	    	char *file = NULL;
-	    	zval **controllers_path;
 			if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
 				Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
 				php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
@@ -153,9 +162,7 @@ PHP_METHOD(cii_uri, __construct)
 	// 	}
 	// 	uri_i++;
 	// }
-	char *dir = NULL;
-	zval **dir_seg;
-	uint j=1;
+	
 	for(j=1;j<=dir_i;j++){
 		char *p = dir;
 		if( zend_hash_index_find(Z_ARRVAL_P(segments), j, (void**)&dir_seg) != FAILURE && Z_TYPE_PP(dir_seg) == IS_STRING && Z_STRLEN_PP(dir_seg) != 0){
@@ -178,7 +185,6 @@ PHP_METHOD(cii_uri, __construct)
 		zval_ptr_dtor(&dir_path);
 	}
 
-	zval **class, **method;
 	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&class) == FAILURE ||
 		(Z_TYPE_PP(class) == IS_STRING && Z_STRLEN_PP(class) == 0) ){
 		zval **default_controller;
@@ -219,11 +225,15 @@ PHP_METHOD(cii_uri, segment)
 {
 	long index;
 	zval *no_result = NULL;
+
+	zval *segments;
+	zval **value;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|z!", &index, &no_result) == FAILURE){
 		WRONG_PARAM_COUNT;
 	}
-	zval *segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
-	zval **value;
+	segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
+	
 	if( zend_hash_index_find(Z_ARRVAL_P(segments), index, (void**)&value) != FAILURE ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
@@ -250,11 +260,15 @@ PHP_METHOD(cii_uri, rsegment)
 {
 	long index;
 	zval *no_result = NULL;
+
+	zval *rsegments;
+	zval **value;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|z!", &index, &no_result) == FAILURE){
 		WRONG_PARAM_COUNT;
 	}
-	zval *rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
-	zval **value;
+	rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+	
 	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), index, (void**)&value) != FAILURE ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
@@ -331,14 +345,16 @@ PHP_METHOD(cii_uri, uri_string)
 */
 PHP_METHOD(cii_uri, ruri_string)
 {
+	zval *delim;
+	zval *retval;
 	zval *rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 	/*
 	*	implode uri
 	*/
-	zval *delim;
+	
 	MAKE_STD_ZVAL(delim);
 	ZVAL_STRINGL(delim, "/", 1, 1);
-	zval *retval;
+	
 	MAKE_STD_ZVAL(retval);
 	php_implode(delim, rsegments, retval TSRMLS_CC);
 	zval_ptr_dtor(&delim);
@@ -352,13 +368,16 @@ PHP_METHOD(cii_uri, ruri_string)
 ZEND_API char* cii_slash_segment(long n, char where, zval *segments)
 {
 	char *segment;
+	zval **value = NULL;
+	char *retval;
+
 	if( !segments ){
 		segment = "";
 	}
 	if( Z_TYPE_P(segments) != IS_ARRAY ){
 		convert_to_array(segments);
 	}
-	zval **value = NULL;
+	
 	if( zend_hash_index_find(Z_ARRVAL_P(segments), n, (void**)&value) == FAILURE ){
 		segment = "";
 	}
@@ -367,7 +386,7 @@ ZEND_API char* cii_slash_segment(long n, char where, zval *segments)
 	}else{
 		segment = "";
 	}
-	char *retval;
+	
 	switch(where){
 		case 't':
 			spprintf(&retval, 0, "%s%c", segment, '/');
@@ -397,10 +416,13 @@ PHP_METHOD(cii_uri, slash_segment)
 	ulong n;
 	char* where = "t";
 	uint where_len = 1;
+
+	zval *segments;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|s", &n, &where, &where_len) == FAILURE){
 		WRONG_PARAM_COUNT;
 	}
-	zval *segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
+	segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
 	RETURN_STRING(cii_slash_segment(n, where[0], segments), 0);
 }
 /**
@@ -419,10 +441,13 @@ PHP_METHOD(cii_uri, slash_rsegment)
 	ulong n;
 	char* where = "t";
 	uint where_len = 1;
+
+	zval *rsegments;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|s", &n, &where, &where_len) == FAILURE){
 		WRONG_PARAM_COUNT;
 	}
-	zval *rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+	rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 	RETURN_STRING(cii_slash_segment(n, where[0], rsegments), 0);
 }
 /**
@@ -438,12 +463,8 @@ PHP_METHOD(cii_uri, slash_rsegment)
 PHP_METHOD(cii_uri, assoc_to_uri)
 {
 	HashTable *array;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "H", &array) == FAILURE){
-		WRONG_PARAM_COUNT;
-	}
 	zval *temp;
-	MAKE_STD_ZVAL(temp);
-	array_init(temp);
+
 	HashPosition pos;
 	char *key;
 	uint key_len;
@@ -451,6 +472,17 @@ PHP_METHOD(cii_uri, assoc_to_uri)
 	ulong idx;
 	zval **value;
 	zval *key_zval;
+
+	zval *delim;
+	zval *retval;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "H", &array) == FAILURE){
+		WRONG_PARAM_COUNT;
+	}
+	
+	MAKE_STD_ZVAL(temp);
+	array_init(temp);
+	
 	for(zend_hash_internal_pointer_reset_ex(array, &pos);
 	    zend_hash_has_more_elements_ex(array, &pos) == SUCCESS;
 	    zend_hash_move_forward_ex(array, &pos)){
@@ -471,10 +503,9 @@ PHP_METHOD(cii_uri, assoc_to_uri)
 	/*
 	*	implode uri
 	*/
-	zval *delim;
 	MAKE_STD_ZVAL(delim);
 	ZVAL_STRINGL(delim, "/", 1, 1);
-	zval *retval;
+	
 	MAKE_STD_ZVAL(retval);
 	php_implode(delim, temp, retval TSRMLS_CC);
 	zval_ptr_dtor(&delim);
@@ -486,16 +517,19 @@ PHP_METHOD(cii_uri, assoc_to_uri)
 /**
 * cii_slash_segment
 */
-ZEND_API zval* cii_uri_to_assoc(long n, zval *segments)
+zval* cii_uri_to_assoc(long n, zval *segments)
 {
 	zval *temp;
-	MAKE_STD_ZVAL(temp);
-	array_init(temp);
+	
 	HashPosition pos;
 	long i = 0, j = 1;
 	char *key;
 	uint key_len;
 	zval **value;
+
+	MAKE_STD_ZVAL(temp);
+	array_init(temp);
+
 	for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(segments), &pos);
 	    zend_hash_has_more_elements_ex(Z_ARRVAL_P(segments), &pos) == SUCCESS;
 	    zend_hash_move_forward_ex(Z_ARRVAL_P(segments), &pos)){
@@ -545,10 +579,13 @@ PHP_METHOD(cii_uri, uri_to_assoc)
 {
 	long n = 3;
 	zval *retval;
+
+	zval *segments;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &n) == FAILURE){
 		WRONG_PARAM_COUNT;
 	}
-	zval *segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
+	segments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("segments"), 1 TSRMLS_CC);
 	retval = cii_uri_to_assoc(n, segments);
 	if( retval ){
 		RETVAL_ZVAL(retval, 1, 0);
@@ -572,10 +609,13 @@ PHP_METHOD(cii_uri, ruri_to_assoc)
 {
 	long n = 3;
 	zval *retval;
+
+	zval *rsegments;
+
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &n) == FAILURE){
 		WRONG_PARAM_COUNT;
 	}
-	zval *rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+	rsegments = zend_read_property(cii_uri_ce, getThis(), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 	retval = cii_uri_to_assoc(n, rsegments);
 	if( retval ){
 		RETVAL_ZVAL(retval, 1, 0);

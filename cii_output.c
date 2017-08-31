@@ -21,14 +21,16 @@ PHP_METHOD(cii_output, __construct)
 /*
 *	append_output
 */
-ZEND_API void cii_append_output(zend_class_entry *cii_output_ce, zval *cii_output_obj, char *output_str TSRMLS_DC)
+void cii_append_output(zend_class_entry *cii_output_ce, zval *cii_output_obj, char *output_str TSRMLS_DC)
 {
-	zval *final_output = zend_read_property(cii_output_ce, cii_output_obj, "final_output", 12, 1 TSRMLS_CC);
-	
+	zval *final_output;
 	char *output_new;
+	zval *new_final_output;
+
+	final_output = zend_read_property(cii_output_ce, cii_output_obj, "final_output", 12, 1 TSRMLS_CC);
+	
 	spprintf(&output_new, 0, "%s%s", Z_STRVAL_P(final_output), output_str);
 
-	zval *new_final_output;
 	MAKE_STD_ZVAL(new_final_output);
 	ZVAL_STRING(new_final_output, output_new, 0);
 
@@ -63,7 +65,7 @@ PHP_METHOD(cii_output, append_output)
 /*
 *	display
 */
-ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint *output_new_len TSRMLS_DC){
+int cii_display(char *output, uint output_len, char **output_new, uint *output_new_len TSRMLS_DC){
 	char *p = NULL;
 	char *free_output_new = NULL;
 	char retval = 0;
@@ -99,6 +101,8 @@ ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint 
 	*	replace {memory_usage}
 	*/
 	while(CII_G(output_replace_memory_usage)--){
+		char *memory;
+
 		p = strstr(*output_new, "{memory_usage}");
 		if( p ){
 			p[13] = '\0';
@@ -106,7 +110,7 @@ ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint 
 			if( retval ){
 				free_output_new = *output_new;
 			}
-			char *memory = _php_math_number_format((double)zend_memory_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
+			memory = _php_math_number_format((double)zend_memory_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
 			*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[14]);
 			efree(memory);
 			if( free_output_new ){
@@ -120,6 +124,8 @@ ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint 
 	*	replace {memory_peak}
 	*/
 	while(CII_G(output_replace_memory_peak)--){
+		char *memory;
+
 		p = strstr(*output_new, "{memory_peak}");
 		if( p ){
 			p[12] = '\0';
@@ -127,7 +133,7 @@ ZEND_API int cii_display(char *output, uint output_len, char **output_new, uint 
 			if( retval ){
 				free_output_new = *output_new;
 			}
-			char *memory = _php_math_number_format((double)zend_memory_peak_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
+			memory = _php_math_number_format((double)zend_memory_peak_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
 			*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[13]);
 			efree(memory);
 			if( free_output_new ){

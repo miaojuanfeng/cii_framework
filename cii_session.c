@@ -1,4 +1,4 @@
-#include "cii_session.h"
+﻿#include "cii_session.h"
 
 zend_class_entry *cii_session_ce;
 
@@ -21,6 +21,9 @@ ZEND_END_ARG_INFO()
 PHP_METHOD(cii_session, __construct)
 {
 	char free_session = 0;
+
+	zval **session;
+	zval *init_session;
 	/*
 	*	call session_start() to init session
 	*/
@@ -32,8 +35,6 @@ PHP_METHOD(cii_session, __construct)
 	/*
 	*	fetch session
 	*/
-	zval **session;
-	zval *init_session;
 	if( zend_hash_find(&EG(symbol_table), "_SESSION", 9, (void**)&session) == FAILURE ){
 		MAKE_STD_ZVAL(init_session);
 		array_init(init_session);
@@ -65,12 +66,13 @@ PHP_METHOD(cii_session, __get)
 {
 	char *key;
 	uint key_len;
+	zval *session;
+	zval **value;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
-	zval **value;
 	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
@@ -85,10 +87,12 @@ PHP_METHOD(cii_session, __set)
 	char *key;
 	uint key_len;
 	zval *value;
+	zval *session;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz" ,&key, &key_len, &value) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
 	Z_ADDREF_P(value);
 	zend_hash_update(Z_ARRVAL_P(session), key, key_len+1, &value, sizeof(zval *), NULL);
@@ -103,10 +107,12 @@ PHP_METHOD(cii_session, set_tempdata)
 	uint key_len;
 	zval *value;
 	zval *t; // not used
+	zval *session;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz|z" ,&key, &key_len, &value, &t) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
 	Z_ADDREF_P(value);
 	zend_hash_update(Z_ARRVAL_P(session), key, key_len+1, &value, sizeof(zval *), NULL);
@@ -119,12 +125,14 @@ PHP_METHOD(cii_session, tempdata)
 {
 	char *key;
 	uint key_len;
+	zval *session;
+	zval **value;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
-	zval **value;
 	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
@@ -143,10 +151,12 @@ PHP_METHOD(cii_session, set_userdata)
 	char *key;
 	uint key_len;
 	zval *value;
+	zval *session;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz" ,&key, &key_len, &value) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
 	Z_ADDREF_P(value);
 	zend_hash_update(Z_ARRVAL_P(session), key, key_len+1, &value, sizeof(zval *), NULL);
@@ -159,12 +169,15 @@ PHP_METHOD(cii_session, userdata)
 {
 	char *key;
 	uint key_len;
+	zval *session;
+
+	zval **value;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
-	zval **value;
 	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(session), key, key_len+1, (void**)&value) ){
 		RETURN_ZVAL(*value, 1, 0);
 	}
@@ -183,13 +196,15 @@ PHP_METHOD(cii_session, unset_userdata)
 	char *key;
 	uint key_len;
 
+	zval *session;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s" ,&key, &key_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
 	/*
 	*	fetch session
 	*/
-	zval *session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
+	session = zend_read_property(cii_session_ce, getThis(), ZEND_STRL("session"), 1 TSRMLS_CC);
 	//
 	RETURN_BOOL(!zend_hash_del(Z_ARRVAL_P(session), key, key_len+1));
 }

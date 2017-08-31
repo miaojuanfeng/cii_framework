@@ -1,4 +1,4 @@
-/*
+﻿/*
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
@@ -208,24 +208,27 @@ CII_API int cii_loader_import(char *path, int path_len, int include_once TSRMLS_
 }
 
 static void cii_init_configs(TSRMLS_D){
+	zval *controllers_dir;
+	zval *models_dir;
+	zval *views_dir;
 	/*
 	*	init controllers_path
 	*/
-	zval *controllers_dir;
+	
 	MAKE_STD_ZVAL(controllers_dir);
 	ZVAL_STRINGL(controllers_dir, "controllers", 11, 1);
 	zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, &controllers_dir, sizeof(zval *), NULL);
 	/*
 	*	init models_path
 	*/
-	zval *models_dir;
+	
 	MAKE_STD_ZVAL(models_dir);
 	ZVAL_STRINGL(models_dir, "models", 6, 1);
 	zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "models_path", 12, &models_dir, sizeof(zval *), NULL);
 	/*
 	*	init views_path
 	*/
-	zval *views_dir;
+	
 	MAKE_STD_ZVAL(views_dir);
 	ZVAL_STRINGL(views_dir, "views", 5, 1);
 	zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "views_path", 11, &views_dir, sizeof(zval *), NULL);
@@ -239,6 +242,36 @@ static void cii_init_configs(TSRMLS_D){
 PHP_FUNCTION(cii_run)
 {
 	zval *config = NULL;
+
+	HashPosition pos;
+	char *key;
+	uint key_len;
+	ulong idx;
+	zval **value;
+	uint key_type;
+
+	zval *marker;
+	zval *total_execution_time_start;
+
+	zval *rsegments;
+
+	zval **run_controller;
+	zval **run_method;
+
+	zval *dir_path;
+	zval **controllers_path;
+
+	char *file;
+	uint file_len;
+
+	zend_class_entry **run_class_ce;
+
+	zval **autoload;
+
+	zval ***run_method_param = NULL;
+	uint run_method_param_count = 0;
+
+	zval *run_method_retval;
 	/*
 	*	get config array or path
 	*/
@@ -259,12 +292,7 @@ PHP_FUNCTION(cii_run)
 	/*
 	*	get the config item
 	*/
-	HashPosition pos;
-	char *key;
-	uint key_len;
-	ulong idx;
-	zval **value;
-	uint key_type;
+	
 	/*
 	*	parameter config is a array
 	*/
@@ -399,9 +427,8 @@ PHP_FUNCTION(cii_run)
 	/*
 	*	Start the timer... tick tock tick tock...
 	*/
-	zval *marker = zend_read_property(cii_benchmark_ce, CII_G(benchmark_obj), ZEND_STRL("marker"), 1 TSRMLS_CC);
+	marker = zend_read_property(cii_benchmark_ce, CII_G(benchmark_obj), ZEND_STRL("marker"), 1 TSRMLS_CC);
 
-	zval *total_execution_time_start;
 	MAKE_STD_ZVAL(total_execution_time_start);
 	ZVAL_DOUBLE(total_execution_time_start, cii_microtime());
 	zend_hash_update(Z_ARRVAL_P(marker), "total_execution_time_start", 27, &total_execution_time_start, sizeof(zval*), NULL);
@@ -491,26 +518,22 @@ PHP_FUNCTION(cii_run)
 		zval_ptr_dtor(&cii_output_retval);
 	}
 	
-	zval *rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
+	rsegments = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("rsegments"), 1 TSRMLS_CC);
 
-	zval **run_controller;
 	if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), 1) || zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&run_controller) == FAILURE ){
 		php_error(E_ERROR, "Controller is empty");
 	}
-	zval **run_method;
+	
 	if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), 2) || zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&run_method) == FAILURE ){
 		php_error(E_ERROR, "Method is empty");
 	}
-	zval *dir_path = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("dir_path"), 1 TSRMLS_CC);
+	dir_path = zend_read_property(cii_uri_ce, CII_G(uri_obj), ZEND_STRL("dir_path"), 1 TSRMLS_CC);
 
-	zval **controllers_path;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
 		Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
 		php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
 	}
 
-	char *file;
-	uint file_len;
 	if( dir_path && Z_TYPE_P(dir_path) == IS_STRING ){
 		file_len = spprintf(&file, 0, "%s/%s/%s/%s.php", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_P(dir_path), Z_STRVAL_PP(run_controller));
 	}else{
@@ -524,7 +547,6 @@ PHP_FUNCTION(cii_run)
 	}
 	efree(file);
 
-	zend_class_entry **run_class_ce;
 	if( zend_hash_find(EG(class_table), Z_STRVAL_PP(run_controller), Z_STRLEN_PP(run_controller)+1, (void**)&run_class_ce) == FAILURE ){
 		php_error(E_ERROR, "controller does not exist: %s\n", Z_STRVAL_PP(run_controller));
 	}
@@ -570,7 +592,6 @@ PHP_FUNCTION(cii_run)
 	/*
 	*	注入autoload对象
 	*/
-	zval **autoload;
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "autoload", 9, (void**)&autoload) == SUCCESS ){
 		/*
 		*	model
@@ -744,8 +765,6 @@ PHP_FUNCTION(cii_run)
 	*	如果uri有带有参数，获取参数传入到method中
 	*	默认参数为空
 	*/
-	zval ***run_method_param = NULL;
-	uint run_method_param_count = 0;
 	/*
 	*	参数从rsegments下标为3的元素开始
 	*/
@@ -766,7 +785,6 @@ PHP_FUNCTION(cii_run)
 	*	调用活动控制器指定方法或默认方法，开始执行控制器
 	*	并将参数传入
 	*/
-	zval *run_method_retval;
 	CII_CALL_USER_METHOD_EX(&CII_G(controller_obj), Z_STRVAL_PP(run_method), &run_method_retval, run_method_param_count, run_method_param);
 	zval_ptr_dtor(&run_method_retval);
 	if( run_method_param ){

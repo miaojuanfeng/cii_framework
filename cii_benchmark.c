@@ -54,15 +54,17 @@ PHP_METHOD(cii_benchmark, mark)
 	char *name;
 	uint name_len;
 
+	zval *microtime;
+	zval *marker;
+
 	if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE ){
 		RETURN_FALSE;
 	}
 	
-	zval *microtime;
 	MAKE_STD_ZVAL(microtime);
 	ZVAL_DOUBLE(microtime, cii_microtime());
 
-	zval *marker = zend_read_property(cii_benchmark_ce, getThis(), ZEND_STRL("marker"), 1 TSRMLS_CC);
+	marker = zend_read_property(cii_benchmark_ce, getThis(), ZEND_STRL("marker"), 1 TSRMLS_CC);
 	zend_hash_update(Z_ARRVAL_P(marker), name, name_len+1, &microtime, sizeof(zval*), NULL);
 }
 /*
@@ -70,12 +72,15 @@ PHP_METHOD(cii_benchmark, mark)
 */
 ZEND_API int elapsed_time_ex(zend_class_entry *cii_benchmark_ce, zval *cii_benchmark_obj, char *point1, uint point1_len, char *point2, uint point2_len, char decimals, char **elapsed_time TSRMLS_DC)
 {
+	zval *marker;
+	zval **start, **end;
+
 	if( !point1_len ){
 		CII_G(output_replace_elapsed_time)++;
 		*elapsed_time = "{elapsed_time}";
 		return 0;
 	}
-	zval *marker = zend_read_property(cii_benchmark_ce, cii_benchmark_obj, ZEND_STRL("marker"), 1 TSRMLS_CC);
+	marker = zend_read_property(cii_benchmark_ce, cii_benchmark_obj, ZEND_STRL("marker"), 1 TSRMLS_CC);
 	if( !zend_hash_exists(Z_ARRVAL_P(marker), point1, point1_len+1) ){
 		*elapsed_time = "";
 		return 0;
@@ -86,7 +91,6 @@ ZEND_API int elapsed_time_ex(zend_class_entry *cii_benchmark_ce, zval *cii_bench
 		ZVAL_DOUBLE(microtime, cii_microtime());
 		zend_hash_update(Z_ARRVAL_P(marker), point2, point2_len+1, &microtime, sizeof(zval*), NULL);
 	}
-	zval **start, **end;
 	zend_hash_find(Z_ARRVAL_P(marker), point1, point1_len+1, (void**)&start);
 	zend_hash_find(Z_ARRVAL_P(marker), point2, point2_len+1, (void**)&end);
 	*elapsed_time = _php_math_number_format((double)(Z_DVAL_PP(end)-Z_DVAL_PP(start)), decimals, '.', ',');
