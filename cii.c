@@ -85,7 +85,7 @@ static char* cii_get_apppath(TSRMLS_D)
 	}
 }
 
-CII_API int cii_loader_import(char *path, int path_len, int include_once TSRMLS_DC) {
+int cii_loader_import(char *path, int path_len, int include_once TSRMLS_DC) {
 	/*zend_file_handle file_handle;
 	zend_op_array 	*op_array;
 	char realpath[MAXPATHLEN];
@@ -323,9 +323,19 @@ PHP_FUNCTION(cii_run)
 		zval **cfg;
 		char *file;
 		uint file_len;
+
+		HashTable *old_active_symbol_table;
+
+		zval **db;
+
+		zval **autoload;
+
 		file_len = spprintf(&file, 0, "%s/%s", CII_G(app_path), Z_STRVAL_P(config));
 
-		CII_ALLOC_ACTIVE_SYMBOL_TABLE();
+		// CII_ALLOC_ACTIVE_SYMBOL_TABLE();
+	    old_active_symbol_table = EG(active_symbol_table);
+	    ALLOC_HASHTABLE(EG(active_symbol_table));
+	    zend_hash_init(EG(active_symbol_table), 0, NULL, ZVAL_PTR_DTOR, 0);
 
 		cii_loader_import(file, file_len, 0 TSRMLS_CC);
 
@@ -353,7 +363,7 @@ PHP_FUNCTION(cii_run)
 		/*
 		*	database
 		*/
-		zval **db;
+		
 		if( zend_hash_find(EG(active_symbol_table), "db", 3, (void**)&db) != FAILURE && Z_TYPE_PP(db) == IS_ARRAY ){
 			// php_error(E_ERROR, "Your config file does not appear to be formatted correctly.");	
 			/*
@@ -378,7 +388,7 @@ PHP_FUNCTION(cii_run)
 		/*
 		*	autoload
 		*/
-		zval **autoload;
+		
 		if( zend_hash_find(EG(active_symbol_table), "autoload", 9, (void**)&autoload) != FAILURE && Z_TYPE_PP(autoload) == IS_ARRAY ){
 			// php_error(E_ERROR, "Your config file does not appear to be formatted correctly.");	
 			/*
@@ -597,6 +607,8 @@ PHP_FUNCTION(cii_run)
 		*	model
 		*/
 		zval **model;
+		zval **helper;
+		zval **library;
 		if( zend_hash_find(Z_ARRVAL_PP(autoload), "model", 6, (void**)&model) == SUCCESS && Z_TYPE_PP(model) == IS_ARRAY ){
 			/*
 			*	foreach model array that defined in file
@@ -614,10 +626,11 @@ PHP_FUNCTION(cii_run)
 				*	update CII_G(configs)
 				*/
 				if( Z_TYPE_PP(value) == IS_STRING ){
+					zval *loader_retval;
 					zval **loader_param[1];
 					loader_param[0] = value;
 					//if ( zend_hash_exists(&cii_loader_ce->function_table, "model", 7) ){
-					zval *loader_retval;
+					
 					CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "model", &loader_retval, 1, loader_param);
 					zval_ptr_dtor(&loader_retval);
 					//}
@@ -625,8 +638,6 @@ PHP_FUNCTION(cii_run)
 					zval ***loader_param = NULL;
 					uint loader_param_count = 0;
 					if( Z_ARRVAL_PP(value)->nNumOfElements > 0 ){
-						loader_param_count = Z_ARRVAL_PP(value)->nNumOfElements;
-						loader_param = emalloc(loader_param_count * sizeof(zval*));
 						HashPosition loader_pos;
 						char *loader_key;
 						uint loader_key_len;
@@ -634,6 +645,12 @@ PHP_FUNCTION(cii_run)
 						zval **loader_value;
 						uint loader_key_type;
 						uint loader_param_index = 0;
+
+						zval *loader_retval;
+
+						loader_param_count = Z_ARRVAL_PP(value)->nNumOfElements;
+						loader_param = emalloc(loader_param_count * sizeof(zval*));
+						
 						for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(value), &loader_pos);
 						    zend_hash_has_more_elements_ex(Z_ARRVAL_PP(value), &loader_pos) == SUCCESS;
 						    zend_hash_move_forward_ex(Z_ARRVAL_PP(value), &loader_pos)){
@@ -646,7 +663,7 @@ PHP_FUNCTION(cii_run)
 							loader_param[loader_param_index++] = loader_value;
 							// php_printf("%s", Z_STRVAL_PP(loader_value));
 						}
-						zval *loader_retval;
+						
 						CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "model", &loader_retval, loader_param_count, loader_param);
 						zval_ptr_dtor(&loader_retval);
 						efree(loader_param);
@@ -659,7 +676,7 @@ PHP_FUNCTION(cii_run)
 		/*
 		*	helper
 		*/
-		zval **helper;
+		
 		if( zend_hash_find(Z_ARRVAL_PP(autoload), "helper", 7, (void**)&helper) == SUCCESS && Z_TYPE_PP(helper) == IS_ARRAY ){
 			/*
 			*	foreach helper array that defined in file
@@ -677,10 +694,11 @@ PHP_FUNCTION(cii_run)
 				*	update CII_G(configs)
 				*/
 				if( Z_TYPE_PP(value) == IS_STRING ){
+					zval *loader_retval;
 					zval **loader_param[1];
 					loader_param[0] = value;
 					//if ( zend_hash_exists(&cii_loader_ce->function_table, "helper", 7) ){
-					zval *loader_retval;
+					
 					CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "helper", &loader_retval, 1, loader_param);
 					zval_ptr_dtor(&loader_retval);
 					//}
@@ -692,7 +710,7 @@ PHP_FUNCTION(cii_run)
 		/*
 		*	library
 		*/
-		zval **library;
+		
 		if( zend_hash_find(Z_ARRVAL_PP(autoload), "library", 8, (void**)&library) == SUCCESS && Z_TYPE_PP(library) == IS_ARRAY ){
 			/*
 			*	foreach library array that defined in file
@@ -710,10 +728,11 @@ PHP_FUNCTION(cii_run)
 				*	update CII_G(configs)
 				*/
 				if( Z_TYPE_PP(value) == IS_STRING ){
+					zval *loader_retval;
 					zval **loader_param[1];
 					loader_param[0] = value;
 					//if ( zend_hash_exists(&cii_loader_ce->function_table, "library", 7) ){
-					zval *loader_retval;
+					
 					CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "library", &loader_retval, 1, loader_param);
 					zval_ptr_dtor(&loader_retval);
 					//}
@@ -721,8 +740,6 @@ PHP_FUNCTION(cii_run)
 					zval ***loader_param = NULL;
 					uint loader_param_count = 0;
 					if( Z_ARRVAL_PP(value)->nNumOfElements > 0 ){
-						loader_param_count = Z_ARRVAL_PP(value)->nNumOfElements;
-						loader_param = emalloc(loader_param_count * sizeof(zval*));
 						HashPosition loader_pos;
 						char *loader_key;
 						uint loader_key_len;
@@ -730,6 +747,13 @@ PHP_FUNCTION(cii_run)
 						zval **loader_value;
 						uint loader_key_type;
 						uint loader_param_index = 0;
+
+						zval *loader_retval;
+
+						loader_param_count = Z_ARRVAL_PP(value)->nNumOfElements;
+						loader_param = emalloc(loader_param_count * sizeof(zval*));
+						
+
 						for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(value), &loader_pos);
 						    zend_hash_has_more_elements_ex(Z_ARRVAL_PP(value), &loader_pos) == SUCCESS;
 						    zend_hash_move_forward_ex(Z_ARRVAL_PP(value), &loader_pos)){
@@ -741,7 +765,7 @@ PHP_FUNCTION(cii_run)
 							}
 							loader_param[loader_param_index++] = loader_value;
 						}
-						zval *loader_retval;
+						
 						CII_CALL_USER_METHOD_EX(&CII_G(loader_obj), "library", &loader_retval, loader_param_count, loader_param);
 						zval_ptr_dtor(&loader_retval);
 						efree(loader_param);
@@ -769,9 +793,10 @@ PHP_FUNCTION(cii_run)
 	*	参数从rsegments下标为3的元素开始
 	*/
 	if( Z_ARRVAL_P(rsegments)->nNumOfElements > 2 ){
+		int i;
 		run_method_param_count = Z_ARRVAL_P(rsegments)->nNumOfElements - 2;
 		run_method_param = emalloc(run_method_param_count * sizeof(zval*));
-		int i;
+		
 		for(i=1;i<=run_method_param_count;i++){
 			zval **param;
 			if( !zend_hash_index_exists(Z_ARRVAL_P(rsegments), i+2) || zend_hash_index_find(Z_ARRVAL_P(rsegments), i+2, (void**)&param) == FAILURE ){
@@ -849,12 +874,13 @@ PHP_FUNCTION(cii_base_url)
 {
 	char *request_uri = NULL;
 	uint request_uri_len = 0;
+	zval **base_url;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &request_uri, &request_uri_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
 
-	zval **base_url;
+	
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
 		// zval *server;
 		// zval **server_name;
@@ -899,6 +925,9 @@ PHP_FUNCTION(cii_redirect)
 	char *hstr;
 	uint hstr_len;
 
+	zval *header;
+	zval *header_retval;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &request_uri, &request_uri_len) == FAILURE){
 		WRONG_PARAM_COUNT;
 	}
@@ -917,13 +946,13 @@ PHP_FUNCTION(cii_redirect)
 		}
 	}
 
-	zval *header;
+	
 	MAKE_STD_ZVAL(header);
 	ZVAL_STRINGL(header, hstr, hstr_len, 0);
 
 	header_param[0] = &header;
 
-	zval *header_retval;
+	
 	CII_CALL_USER_FUNCTION_EX(EG(function_table), NULL, "header", &header_retval, 1, header_param);
 	zval_ptr_dtor(&header_retval);
 
@@ -936,11 +965,13 @@ PHP_FUNCTION(cii_log_message)
 	uint level_len;
 	char *message;
 	uint message_len;
+
+	char retval;
 	
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss" ,&level, &level_len, &message, &message_len) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	char retval = cii_user_write_log(level, level_len, message, message_len TSRMLS_CC);
+	retval = cii_user_write_log(level, level_len, message, message_len TSRMLS_CC);
 	if( return_value_used ){
 		RETURN_BOOL(retval);
 	}

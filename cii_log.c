@@ -58,7 +58,7 @@ int cii_write_log(int level, char *message TSRMLS_DC)
 	zval **logs_path;
 	char *filepath;
 	char *level_upper;
-	char time[20];
+	char timer[20];
 	FILE *f;
 
 	// This function Not working in Thread Safe mode. will fix it later.
@@ -117,7 +117,7 @@ int cii_write_log(int level, char *message TSRMLS_DC)
 	/*
 	*	get time
 	*/
-	strftime(time, 20, "%Y-%m-%d %H:%M:%S", localtime(&t));
+	strftime(timer, 20, "%Y-%m-%d %H:%M:%S", localtime(&t));
 	/*
 	*	open file to write log
 	*/
@@ -142,7 +142,7 @@ int cii_write_log(int level, char *message TSRMLS_DC)
 		/*
 		*	write log
 		*/
-		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", time, " --> ", message, "\r\n");
+		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", timer, " --> ", message, "\r\n");
 		fputs(log, f);
 		efree(log);
 	/*
@@ -159,7 +159,7 @@ int cii_write_log(int level, char *message TSRMLS_DC)
 		/*
 		*	write log
 		*/
-		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", time, " --> ", message, "\r\n");
+		spprintf(&log, 0, "%s%s%s%s%s%s", level_upper, " - ", timer, " --> ", message, "\r\n");
 		fputs(log, f);
 		efree(log);
 	}
@@ -176,7 +176,7 @@ int cii_write_log(int level, char *message TSRMLS_DC)
 /*
 *	cii_user_write_log
 */
-ZEND_API int cii_user_write_log(char *level, uint level_len, char *message, uint message_len TSRMLS_DC)
+int cii_user_write_log(char *level, uint level_len, char *message, uint message_len TSRMLS_DC)
 {
 	char *log_threshold[4] = {"error", "debug", "info", "all"};
 	char *level_lower = zend_str_tolower_dup(level, level_len);

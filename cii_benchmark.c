@@ -70,7 +70,7 @@ PHP_METHOD(cii_benchmark, mark)
 /*
 *	Elapsed time
 */
-ZEND_API int elapsed_time_ex(zend_class_entry *cii_benchmark_ce, zval *cii_benchmark_obj, char *point1, uint point1_len, char *point2, uint point2_len, char decimals, char **elapsed_time TSRMLS_DC)
+int elapsed_time_ex(zend_class_entry *cii_benchmark_ce, zval *cii_benchmark_obj, char *point1, uint point1_len, char *point2, uint point2_len, char decimals, char **elapsed_time TSRMLS_DC)
 {
 	zval *marker;
 	zval **start, **end;
@@ -206,7 +206,6 @@ PHP_MINIT_FUNCTION(cii_benchmark)
 
 	return SUCCESS;
 }
-
 /*
  * Local variables:
  * tab-width: 4

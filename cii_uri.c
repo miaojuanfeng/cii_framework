@@ -108,6 +108,7 @@ PHP_METHOD(cii_uri, __construct)
 	    	for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(uri_arr), &pos);
 			    zend_hash_has_more_elements_ex(Z_ARRVAL_P(uri_arr), &pos) == SUCCESS;
 			    zend_hash_move_forward_ex(Z_ARRVAL_P(uri_arr), &pos)){
+					char realpath[MAXPATHLEN];
 					if(zend_hash_get_current_data_ex(Z_ARRVAL_P(uri_arr), (void**)&value, &pos) == FAILURE){
 						continue;
 					}
@@ -118,7 +119,7 @@ PHP_METHOD(cii_uri, __construct)
 						efree(file);
 					}
 					spprintf(&file, 0, "%s/%s/%s", CII_G(app_path), Z_STRVAL_PP(controllers_path), Z_STRVAL_PP(value));
-					char realpath[MAXPATHLEN];
+					
 					//	cms/cms/cms/aa/bb/cc/dd -> bug
 					if (!VCWD_REALPATH(file, realpath)) {
 						Z_ADDREF_PP(value);
@@ -365,7 +366,7 @@ PHP_METHOD(cii_uri, ruri_string)
 /**
 * cii_slash_segment
 */
-ZEND_API char* cii_slash_segment(long n, char where, zval *segments)
+char* cii_slash_segment(long n, char where, zval *segments)
 {
 	char *segment;
 	zval **value = NULL;
