@@ -22,7 +22,7 @@ CII 扩展在以下环境中开发测试及运行：
 
 OS：
 * Ubuntu Kylin 14.04 64bit
-* indows7 64bit
+* Windows7 64bit
 * Mac
 
 PHP：
