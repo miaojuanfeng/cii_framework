@@ -21,15 +21,18 @@ CII 是一个小巧但功能强大的 PHP 扩展框架，作为一个简单优�
 CII 扩展在以下环境中开发测试及运行：
 
 OS：
+* Mac OS X EI Capitan 10.11.6
 * Ubuntu Kylin 14.04 64bit
-* Windows7 64bit
-* Mac
+* Windows 7 64bit
 
 PHP：
 * PHP-5.6.25
 
+Server:
+* Httpd 2.4.27
+
 Mysql：
-* 任何 mysqli 扩展支持的版本
+* 任何 Mysqli 扩展支持的版本
 
 ### PHP编译方式
 CII 框架支持PHP的单线程模式与多线程模式。如果 PHP 被编译成单线程，采用 CGI 方式与服务器协作。参考编译配置：
