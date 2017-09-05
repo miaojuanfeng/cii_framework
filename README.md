@@ -32,14 +32,10 @@ Mysql：
 * 任何 mysqli 扩展支持的版本
 
 ### PHP编译方式
-CII框架支持PHP的单线程模式与多线程模式。
-
-如果PHP被编译成单线程，采用CGI方式与服务器协作。参考编译配置：
+CII 框架支持PHP的单线程模式与多线程模式。如果 PHP 被编译成单线程，采用 CGI 方式与服务器协作。参考编译配置：
 
 ```php
 --prefix=/web/php --disable-maintainer-zts --enable-debug --with-mysql=mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd
 ```
 
-如果PHP被编译成Apache模块，采用多线程方式与服务器协作，编译PHP时需要开启多线程模式。
-
-线上安装请关闭PHP的Debug模式，去除--enable-debug
+如果 PHP 被编译成 Apache 模块，采用多线程方式与服务器协作，编译 PHP 时需要开启多线程模式。线上安装请关闭 PHP 的 Debug 模式，去除 `--enable-debug`。
