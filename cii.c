@@ -12,7 +12,7 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author: miaojuanfeng@qq.com                                          |
   +----------------------------------------------------------------------+
 */
 
@@ -42,29 +42,18 @@
 #include "cii_pagination.c"
 #include "cii_log.c"
 
-
 ZEND_DECLARE_MODULE_GLOBALS(cii)
 
-/* True global resources - no need for thread safety here */
 static int le_cii;
 
-/* {{{ PHP_INI
+/* {{{ cii_get_instance_arginfo
  */
-/* Remove comments and fill if you need to have entries in php.ini
-PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("cii.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_cii_globals, cii_globals)
-    STD_PHP_INI_ENTRY("cii.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_cii_globals, cii_globals)
-PHP_INI_END()
-*/
+ZEND_BEGIN_ARG_INFO_EX(cii_get_instance_arginfo, 0, 1, 0)
+ZEND_END_ARG_INFO()
 /* }}} */
 
-/* Remove the following function when you have successfully modified config.m4
-   so that your module can be compiled into PHP, it exists only for testing
-   purposes. */
-
-/* Every user-visible function in PHP should document itself in the source */
-/* {{{ proto string confirm_cii_compiled(string arg)
-   Return a string to confirm that the module is compiled in */
+/* {{{ cii_get_apppath
+ */
 static char* cii_get_apppath(TSRMLS_D)
 {
 	char path[MAXPATHLEN];
@@ -84,129 +73,76 @@ static char* cii_get_apppath(TSRMLS_D)
 		return NULL;
 	}
 }
+/* }}} */
 
+/* {{{ cii_loader_import
+ */
 int cii_loader_import(char *path, int path_len, int include_once TSRMLS_DC) {
-	/*zend_file_handle file_handle;
-	zend_op_array 	*op_array;
-	char realpath[MAXPATHLEN];
-
-	if (!VCWD_REALPATH(path, realpath)) {
-		php_error(E_ERROR, "Unable to load the requested file: %s", path);
+	zend_file_handle file_handle;
+	char *resolved_path;
+	zend_op_array *new_op_array=NULL;
+	zend_bool failure_retval = 0;
+	resolved_path = zend_resolve_path(path, path_len TSRMLS_CC);
+	if (resolved_path) {
+		failure_retval = zend_hash_exists(&EG(included_files), resolved_path, strlen(resolved_path)+1);
+	} else {
+		resolved_path = path;
 	}
-
-	file_handle.filename = path;
-	file_handle.free_filename = 0;
-	file_handle.type = ZEND_HANDLE_FILENAME;
-	file_handle.opened_path = NULL;
-	file_handle.handle.fp = NULL;
-
-	op_array = zend_compile_file(&file_handle, ZEND_INCLUDE TSRMLS_CC);
-
-	if (op_array && file_handle.handle.stream.handle) {
-		int dummy = 1;
-
+	if (failure_retval) {
+		// do nothing, file already included
+	} else if (SUCCESS == zend_stream_open(resolved_path, &file_handle TSRMLS_CC)) {
 		if (!file_handle.opened_path) {
-			file_handle.opened_path = path;
+			file_handle.opened_path = estrdup(resolved_path);
 		}
-
-		zend_hash_add(&EG(included_files), file_handle.opened_path, strlen(file_handle.opened_path)+1, (void *)&dummy, sizeof(int), NULL);
+		/*
+		*	include once
+		*/
+		if( !include_once ){
+			if (zend_hash_add_empty_element(&EG(included_files), file_handle.opened_path, strlen(file_handle.opened_path)+1)==SUCCESS) {
+				new_op_array = zend_compile_file(&file_handle, ZEND_INCLUDE TSRMLS_CC);
+				zend_destroy_file_handle(&file_handle TSRMLS_CC);
+			} else {
+				zend_file_handle_dtor(&file_handle TSRMLS_CC);
+				failure_retval=1;
+			}
+		/*
+		*	include more
+		*/
+		}else{
+			new_op_array = zend_compile_file(&file_handle, ZEND_INCLUDE TSRMLS_CC);
+			zend_destroy_file_handle(&file_handle TSRMLS_CC);
+		}
+	} else {
+		zend_message_dispatcher(ZMSG_FAILED_INCLUDE_FOPEN, path TSRMLS_CC);
 	}
-	zend_destroy_file_handle(&file_handle TSRMLS_CC);
+	if (resolved_path != path) {
+		efree(resolved_path);
+	}
 
-	if (op_array) {
-		zval *result = NULL;
+	if (EXPECTED(new_op_array != NULL)) {
+		zend_op_array *origin_op_array = EG(active_op_array);
+		EG(active_op_array) = new_op_array;
 
-		CII_STORE_EG_ENVIRON();
-
-		EG(return_value_ptr_ptr) = &result;
-		EG(active_op_array) 	 = op_array;
-		
-#if ((PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION > 2)) || (PHP_MAJOR_VERSION > 5)
 		if (!EG(active_symbol_table)) {
 			zend_rebuild_symbol_table(TSRMLS_C);
 		}
-#endif
-		zend_execute(op_array TSRMLS_CC);
 
-		destroy_op_array(op_array TSRMLS_CC);
-		efree(op_array);
-		if (!EG(exception)) {
-			if (EG(return_value_ptr_ptr) && *EG(return_value_ptr_ptr)) {
-				zval_ptr_dtor(EG(return_value_ptr_ptr));
-			}
-		}
-		CII_RESTORE_EG_ENVIRON();
+		zend_execute(new_op_array TSRMLS_CC);
 
-	    return 1;
-	}
-	return 0;*/
+		EG(active_op_array) = origin_op_array;
+		destroy_op_array(new_op_array TSRMLS_CC);
+		efree(new_op_array);
 
-	/* require_once/include_once */
-	{
-		zend_file_handle file_handle;
-		char *resolved_path;
-		zend_op_array *new_op_array=NULL;
-		zend_bool failure_retval = 0;
-		resolved_path = zend_resolve_path(path, path_len TSRMLS_CC);
-		if (resolved_path) {
-			failure_retval = zend_hash_exists(&EG(included_files), resolved_path, strlen(resolved_path)+1);
-		} else {
-			resolved_path = path;
-		}
-		if (failure_retval) {
-			// do nothing, file already included
-		} else if (SUCCESS == zend_stream_open(resolved_path, &file_handle TSRMLS_CC)) {
-			if (!file_handle.opened_path) {
-				file_handle.opened_path = estrdup(resolved_path);
-			}
-			/*
-			*	include once
-			*/
-			if( !include_once ){
-				if (zend_hash_add_empty_element(&EG(included_files), file_handle.opened_path, strlen(file_handle.opened_path)+1)==SUCCESS) {
-					new_op_array = zend_compile_file(&file_handle, ZEND_INCLUDE TSRMLS_CC);
-					zend_destroy_file_handle(&file_handle TSRMLS_CC);
-				} else {
-					zend_file_handle_dtor(&file_handle TSRMLS_CC);
-					failure_retval=1;
-				}
-			/*
-			*	include more
-			*/
-			}else{
-				new_op_array = zend_compile_file(&file_handle, ZEND_INCLUDE TSRMLS_CC);
-				zend_destroy_file_handle(&file_handle TSRMLS_CC);
-			}
-		} else {
-			zend_message_dispatcher(ZMSG_FAILED_INCLUDE_FOPEN, path TSRMLS_CC);
-		}
-		if (resolved_path != path) {
-			efree(resolved_path);
-		}
-
-		if (EXPECTED(new_op_array != NULL)) {
-			zend_op_array *origin_op_array = EG(active_op_array);
-			EG(active_op_array) = new_op_array;
-
-			if (!EG(active_symbol_table)) {
-				zend_rebuild_symbol_table(TSRMLS_C);
-			}
-
-			zend_execute(new_op_array TSRMLS_CC);
-
-			EG(active_op_array) = origin_op_array;
-			destroy_op_array(new_op_array TSRMLS_CC);
-			efree(new_op_array);
-
-			if( EG(return_value_ptr_ptr) && *EG(return_value_ptr_ptr) ){
-				zval_ptr_dtor(EG(return_value_ptr_ptr));
-			}
+		if( EG(return_value_ptr_ptr) && *EG(return_value_ptr_ptr) ){
+			zval_ptr_dtor(EG(return_value_ptr_ptr));
 		}
 	}
-	/* */
 	return 1;
 }
+/* }}} */
 
+/* {{{ cii_init_configs
+ */
 static void cii_init_configs(TSRMLS_D){
 	zval *controllers_dir;
 	zval *models_dir;
@@ -214,21 +150,18 @@ static void cii_init_configs(TSRMLS_D){
 	/*
 	*	init controllers_path
 	*/
-	
 	MAKE_STD_ZVAL(controllers_dir);
 	ZVAL_STRINGL(controllers_dir, "controllers", 11, 1);
 	zend_hash_update(Z_ARRVAL_P(CII_G(config_arr)), "controllers_path", 17, &controllers_dir, sizeof(zval *), NULL);
 	/*
 	*	init models_path
 	*/
-	
 	MAKE_STD_ZVAL(models_dir);
 	ZVAL_STRINGL(models_dir, "models", 6, 1);
 	zend_hash_update(Z_ARRVAL_P(CII_G(config_arr)), "models_path", 12, &models_dir, sizeof(zval *), NULL);
 	/*
 	*	init views_path
 	*/
-	
 	MAKE_STD_ZVAL(views_dir);
 	ZVAL_STRINGL(views_dir, "views", 5, 1);
 	zend_hash_update(Z_ARRVAL_P(CII_G(config_arr)), "views_path", 11, &views_dir, sizeof(zval *), NULL);
@@ -238,7 +171,10 @@ static void cii_init_configs(TSRMLS_D){
     //
     CII_G(view_symbol_level) = 0;
 }
+/* }}} */
 
+/* {{{ cii_run
+ */
 PHP_FUNCTION(cii_run)
 {
 	zval *config = NULL;
@@ -497,13 +433,6 @@ PHP_FUNCTION(cii_run)
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
 	zend_update_property(*run_class_ce, CII_G(controller_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "benchmark", 9, CII_G(benchmark_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "lang", 4, CII_G(lang_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "output", 6, CII_G(output_obj) TSRMLS_CC);
-	// zend_update_property(*run_class_ce, CII_G(controller_obj), "log", 3, CII_G(log_obj) TSRMLS_CC);
 	/*
 	*	注入autoload对象
 	*/
@@ -763,11 +692,9 @@ PHP_FUNCTION(cii_run)
 	RETURN_TRUE;
 }
 /* }}} */
-/* The previous line is meant for vim and emacs, so it can correctly fold and 
-   unfold functions in source code. See the corresponding marks just before 
-   function definition, where the functions purpose is also documented. Please 
-   follow this convention for the convenience of others editing your code.
-*/
+
+/* {{{ cii_base_url
+ */
 PHP_FUNCTION(cii_base_url)
 {
 	char *request_uri = NULL;
@@ -778,31 +705,7 @@ PHP_FUNCTION(cii_base_url)
 		WRONG_PARAM_COUNT;
 	}
 
-	
 	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "base_url", 9, (void**)&base_url) == FAILURE ){
-		// zval *server;
-		// zval **server_name;
-		// zval **server_port;
-		// // 这里要初始化一下，不然得不到$_SERVER
-		// if (PG(auto_globals_jit)) {
-		// 	zend_is_auto_global("_SERVER", sizeof("_SERVER")-1);
-		// }
-		// server = PG(http_globals)[TRACK_VARS_SERVER];
-
-		// if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_NAME", sizeof("SERVER_NAME"), (void**)&server_name) && Z_TYPE_PP(server_name) == IS_STRING ){
-		// 	char *server_name_port;
-		// 	if ( SUCCESS == zend_hash_find(Z_ARRVAL_P(server), "SERVER_PORT", sizeof("SERVER_PORT"), (void**)&server_port) && Z_TYPE_PP(server_port) == IS_STRING ){
-		// 		spprintf(&server_name_port, 0, "http://%s:%s", Z_STRVAL_PP(server_name), Z_STRVAL_PP(server_port));
-		// 	}else{
-		// 		spprintf(&server_name_port, 0, "http://%s", Z_STRVAL_PP(server_name));
-		// 	}
-		// 	MAKE_STD_ZVAL(*base_url);
-		// 	ZVAL_STRING(*base_url, server_name_port, 0);
-		// }else{
-		// 	MAKE_STD_ZVAL(*base_url);
-		// 	ZVAL_EMPTY_STRING(*base_url);
-		// }
-		// zend_hash_update(Z_ARRVAL_P(CII_G(config_arr)), "base_url", 9, base_url, sizeof(zval *), NULL);
 		php_error(E_ERROR, "get config item 'base_url' failed.");
 	}
 	if( request_uri && request_uri_len ){
@@ -813,7 +716,10 @@ PHP_FUNCTION(cii_base_url)
 		RETURN_ZVAL(*base_url, 1, 0);
 	}
 }
+/* }}} */
 
+/* {{{ cii_redirect
+ */
 PHP_FUNCTION(cii_redirect)
 {
 	char *request_uri = NULL;
@@ -856,7 +762,10 @@ PHP_FUNCTION(cii_redirect)
 
 	zval_ptr_dtor(&header);
 }
+/* }}} */
 
+/* {{{ cii_log_message
+ */
 PHP_FUNCTION(cii_log_message)
 {
 	char *level;
@@ -874,59 +783,29 @@ PHP_FUNCTION(cii_log_message)
 		RETURN_BOOL(retval);
 	}
 }
+/* }}} */
 
-ZEND_BEGIN_ARG_INFO_EX(cii_get_instance_arginfo, 0, 1, 0)
-ZEND_END_ARG_INFO()
+/* {{{ cii_get_instance
+ */
 PHP_FUNCTION(cii_get_instance)
 {
 	RETURN_ZVAL(CII_G(controller_obj), 1, 0);
 }
+/* }}} */
 
 /* {{{ php_cii_init_globals
  */
-/* Uncomment this function if you have INI entries
 static void php_cii_init_globals(zend_cii_globals *cii_globals)
 {
-	cii_globals->global_value = 0;
-	cii_globals->global_string = NULL;
-}
-*/
-/* }}} */
-static void php_cii_globals_ctor(zend_cii_globals *cii_globals)
-{
-	// cii_globals->controller_ce = NULL;
-	// cii_globals->CII_G(controller_obj) = NULL;
-	// /*
-	// *	init CII_G(CII_G(app_path))
-	// */
-	// cii_globals->CII_G(app_path) = cii_get_apppath(TSRMLS_C);
-	// /*
-	// *	init CII_G(config_obj)
-	// */
-	// MAKE_STD_ZVAL(cii_globals->config_arr);
-	// array_init(cii_globals->config_arr);
 	memset(cii_globals, 0, sizeof(zend_cii_globals));
 }
+/* }}} */
 
-// static void php_cii_globals_dtor(zend_cii_globals *cii_globals)
-// {
-// 	// 现在变成自动释放？
-// 	// if( cii_globals->cii_CII_G(controller_obj) ) zval_ptr_dtor(&cii_globals->cii_CII_G(controller_obj));
-// 	// if( cii_globals->CII_G(app_path) ) efree(cii_globals->CII_G(app_path));
-// 	// if( cii_globals->config_arr ) zval_ptr_dtor(&cii_globals->config_arr);
-
-// 	// efree(CII_G(app_path));
-// 	// zval_ptr_dtor(&config_arr);
-// 	// zval_ptr_dtor(&uri_obj);
-// 	// zval_ptr_dtor(&CII_G(router_obj));
-// 	// zval_ptr_dtor(&CII_G(loader_obj));
-// 	// zval_ptr_dtor(&CII_G(output_obj));
-// }
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(cii)
 {
-	ZEND_INIT_MODULE_GLOBALS(cii, php_cii_globals_ctor, NULL);
+	ZEND_INIT_MODULE_GLOBALS(cii, php_cii_init_globals, NULL);
 	//
 	ZEND_MINIT(cii_config)(INIT_FUNC_ARGS_PASSTHRU);
 	ZEND_MINIT(cii_uri)(INIT_FUNC_ARGS_PASSTHRU);
@@ -945,35 +824,6 @@ PHP_MINIT_FUNCTION(cii)
 }
 /* }}} */
 
-/* {{{ PHP_MSHUTDOWN_FUNCTION
- */
-PHP_MSHUTDOWN_FUNCTION(cii)
-{
-	/* uncomment this line if you have INI entries
-	UNREGISTER_INI_ENTRIES();
-	*/
-	return SUCCESS;
-}
-/* }}} */
-
-/* Remove if there's nothing to do at request start */
-/* {{{ PHP_RINIT_FUNCTION
- */
-PHP_RINIT_FUNCTION(cii)
-{
-	return SUCCESS;
-}
-/* }}} */
-
-/* Remove if there's nothing to do at request end */
-/* {{{ PHP_RSHUTDOWN_FUNCTION
- */
-PHP_RSHUTDOWN_FUNCTION(cii)
-{
-	return SUCCESS;
-}
-/* }}} */
-
 /* {{{ PHP_MINFO_FUNCTION
  */
 PHP_MINFO_FUNCTION(cii)
@@ -981,24 +831,18 @@ PHP_MINFO_FUNCTION(cii)
 	php_info_print_table_start();
 	php_info_print_table_header(2, "cii support", "enabled");
 	php_info_print_table_end();
-
-	/* Remove comments if you have entries in php.ini
-	DISPLAY_INI_ENTRIES();
-	*/
 }
 /* }}} */
 
 /* {{{ cii_functions[]
- *
- * Every user visible function must have an entry in cii_functions[].
  */
 const zend_function_entry cii_functions[] = {
-	PHP_FE(cii_run,	NULL)		/* For testing, remove later. */
+	PHP_FE(cii_run,	NULL)
 	PHP_FE(cii_base_url,	NULL)
 	PHP_FE(cii_redirect,	NULL)
 	PHP_FE(cii_log_message,	NULL)
 	PHP_FE(cii_get_instance,	cii_get_instance_arginfo)
-	PHP_FE_END	/* Must be the last line in cii_functions[] */
+	PHP_FE_END
 };
 /* }}} */
 
@@ -1009,9 +853,9 @@ zend_module_entry cii_module_entry = {
 	"cii",
 	cii_functions,
 	PHP_MINIT(cii),
-	PHP_MSHUTDOWN(cii),
-	PHP_RINIT(cii),		/* Replace with NULL if there's nothing to do at request start */
-	PHP_RSHUTDOWN(cii),	/* Replace with NULL if there's nothing to do at request end */
+	NULL,
+	NULL,
+	NULL,
 	PHP_MINFO(cii),
 	PHP_CII_VERSION,
 	STANDARD_MODULE_PROPERTIES
