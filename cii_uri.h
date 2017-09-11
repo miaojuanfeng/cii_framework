@@ -12,11 +12,18 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author: miaojuanfeng@qq.com                                          |
   +----------------------------------------------------------------------+
 */
 
+/* $Id$ */
+
+#ifndef CII_URI_H
+#define CII_URI_H
+
 ZEND_EXTERN_MODULE_GLOBALS(cii)
+
+#endif  /* CII_URI_H */
 
 /*
  * Local variables:

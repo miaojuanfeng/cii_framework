@@ -12,7 +12,7 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author: miaojuanfeng@qq.com                                          |
   +----------------------------------------------------------------------+
 */
 
@@ -158,7 +158,6 @@ CII_API int cii_loader_import(char *path, int len, int use_path TSRMLS_DC);
 #endif
 
 #endif	/* PHP_CII_H */
-
 
 /*
  * Local variables:
