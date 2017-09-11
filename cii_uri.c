@@ -99,7 +99,7 @@ PHP_METHOD(cii_uri, __construct)
 	    	/*
 			*	update cii_uri::segments
 			*/
-			if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
+			if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
 				Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
 				php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
 			}
@@ -144,7 +144,7 @@ PHP_METHOD(cii_uri, __construct)
 	// char *file = NULL;
 	// zval **class, **method;
 	// zval **controllers_path;
-	// if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
+	// if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "controllers_path", 17, (void**)&controllers_path) == FAILURE ||
 	// 	Z_TYPE_PP(controllers_path) != IS_STRING || Z_STRLEN_PP(controllers_path) == 0 ){
 	// 	php_error(E_ERROR, "Your config 'controllers_path' does not appear to be formatted correctly.");
 	// }
@@ -189,7 +189,7 @@ PHP_METHOD(cii_uri, __construct)
 	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 1, (void**)&class) == FAILURE ||
 		(Z_TYPE_PP(class) == IS_STRING && Z_STRLEN_PP(class) == 0) ){
 		zval **default_controller;
-		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_controller", 19, (void**)&default_controller) == FAILURE ||
+		if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "default_controller", 19, (void**)&default_controller) == FAILURE ||
 			Z_TYPE_PP(default_controller) != IS_STRING || Z_STRLEN_PP(default_controller) == 0 ){
 			php_error(E_ERROR, "Your config item 'default_controller' does not appear to be formatted correctly.");
 		}
@@ -199,7 +199,7 @@ PHP_METHOD(cii_uri, __construct)
 	if( zend_hash_index_find(Z_ARRVAL_P(rsegments), 2, (void**)&method) == FAILURE ||
 		(Z_TYPE_PP(method) == IS_STRING && Z_STRLEN_PP(method) == 0) ){
 		zval **default_method;
-		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "default_method", 15, (void**)&default_method) == FAILURE ||
+		if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "default_method", 15, (void**)&default_method) == FAILURE ||
 			Z_TYPE_PP(default_method) != IS_STRING || Z_STRLEN_PP(default_method) == 0 ){
 			php_error(E_ERROR, "Your config item 'default_method' does not appear to be formatted correctly.");
 		}

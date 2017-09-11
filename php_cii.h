@@ -45,30 +45,23 @@ extern zend_module_entry cii_module_entry;
 
 ZEND_BEGIN_MODULE_GLOBALS(cii)
     char *app_path;
+    zval *config_arr;
 
-    zval *configs;
+    zval *config_obj;
     zval *uri_obj;
     zval *router_obj;
     zval *loader_obj;
-    zval *output_obj;
-    zval *input_obj;
-    zval *config_obj;
-    zval *log_obj;
-    //
-    zval *session_obj;
-    zval *benchmark_obj;
-    zval *pagination_obj;
-    zval *lang_obj;
+
+    zend_class_entry *controller_ce;
+    zval *controller_obj;
 
     int output_replace_elapsed_time;
     int output_replace_memory_usage;
     int output_replace_memory_peak;
 
-    zend_class_entry *controller_ce;
-    zval *controller_obj;
-
     zend_class_entry *instance_ce;
     zval *instance_obj;
+    
     HashTable *view_symbol_table;
     zend_uint view_symbol_level;
 ZEND_END_MODULE_GLOBALS(cii)

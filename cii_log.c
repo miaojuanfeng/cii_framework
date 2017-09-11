@@ -16,7 +16,7 @@ PHP_METHOD(cii_log, __construct)
 	*	logs filepath
 	*/
 	
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
 		Z_TYPE_PP(logs_path) != IS_STRING || Z_STRLEN_PP(logs_path) == 0 ){
 		php_error(E_ERROR, "Your config 'logs_path' does not appear to be formatted correctly.");
 	}
@@ -94,7 +94,7 @@ int cii_write_log(int level, char *message TSRMLS_DC)
 	/*
 	*	logs filepath
 	*/
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "logs_path", 10, (void**)&logs_path) == FAILURE ||
 		Z_TYPE_PP(logs_path) != IS_STRING || Z_STRLEN_PP(logs_path) == 0 ){
 		php_error(E_ERROR, "Your config 'logs_path' does not appear to be formatted correctly.");
 	}

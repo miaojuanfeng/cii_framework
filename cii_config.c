@@ -16,7 +16,7 @@ PHP_METHOD(cii_config, __construct)
 	/*
 	* 	init cii_config::config
 	*/
-	zval *config = CII_G(configs);
+	zval *config = CII_G(config_arr);
 	/*
 	*	 we will use zend_update_property() or add_property_zval_ex() function to update class property.
 	* 	these function will separate zval when zval's is_ref__gc is true.
@@ -60,7 +60,7 @@ PHP_METHOD(cii_config, __construct)
 	// 	zend_hash_update(Z_ARRVAL_P(config), "base_url", 9, &base_url, sizeof(zval *), NULL);
 	// }
 
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, (void**)&base_url) == FAILURE ){
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "base_url", 9, (void**)&base_url) == FAILURE ){
 		zval *server;
 		zval **server_name;
 		zval **server_port;
@@ -84,7 +84,7 @@ PHP_METHOD(cii_config, __construct)
 			MAKE_STD_ZVAL(init_base_url);
 			ZVAL_EMPTY_STRING(init_base_url);
 		}
-		zend_hash_update(Z_ARRVAL_P(CII_G(configs)), "base_url", 9, &init_base_url, sizeof(zval *), NULL);
+		zend_hash_update(Z_ARRVAL_P(CII_G(config_arr)), "base_url", 9, &init_base_url, sizeof(zval *), NULL);
 	}
 	/*
 	* output log
@@ -99,7 +99,7 @@ zval* cii_config_item(char *item, uint item_len, char *index, uint index_len)
 	TSRMLS_FETCH();
 
 	zval **value;
-	zval *config = CII_G(configs);
+	zval *config = CII_G(config_arr);
 	if( !index ){
 		if( zend_hash_find(Z_ARRVAL_P(config), item, item_len+1, (void**)&value) == FAILURE ){
 			return NULL;
@@ -440,7 +440,7 @@ PHP_METHOD(cii_config, set_item)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz", &item, &item_len, &value) == FAILURE) {
 		WRONG_PARAM_COUNT;
 	}
-	config = CII_G(configs);
+	config = CII_G(config_arr);
 	value_ptr = &value;
 	CII_IF_ISREF_THEN_SEPARATE_ELSE_ADDREF(value_ptr);	
 	zend_hash_update(Z_ARRVAL_P(config), item, item_len+1, value_ptr, sizeof(zval *), NULL);

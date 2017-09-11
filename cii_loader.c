@@ -8,6 +8,18 @@ ZEND_END_ARG_INFO()
 
 /*
 *	function cii___get()
+*
+*	注入CII内核类对象实例到CII::Loader类对象成员变量中
+*	使用CII_Loader::__get()魔术函数替代以下注入过程，从Controller中自动获取对象
+*
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "uri", 3, CII_G(uri_obj) TSRMLS_CC);
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "load", 4, CII_G(loader_obj) TSRMLS_CC);
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "router", 6, CII_G(router_obj) TSRMLS_CC);
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "input", 5, CII_G(input_obj) TSRMLS_CC);
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "session", 7, CII_G(session_obj) TSRMLS_CC);
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "pagination", 10, CII_G(pagination_obj) TSRMLS_CC);
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "benchmark", 9, CII_G(benchmark_obj) TSRMLS_CC);
+* 	zend_update_property(cii_loader_ce, CII_G(loader_obj), "lang", 4, CII_G(lang_obj) TSRMLS_CC);
 */
 void cii___get(INTERNAL_FUNCTION_PARAMETERS)
 {
@@ -68,7 +80,7 @@ PHP_METHOD(cii_loader, __get)
 *
 * public function view($view, $vars = array(), $return = FALSE)
 */
-PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提示
+PHP_METHOD(cii_loader, view){
 	char *view;
 	uint view_len;
 	HashTable *data = NULL;
@@ -93,7 +105,7 @@ PHP_METHOD(cii_loader, view){ // bug. 视图调用视图时，出现错误不提
 	// 	cii_get_apppath();
 	// }
 	
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "views_path", 11, (void**)&views_path) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "views_path", 11, (void**)&views_path) == FAILURE ||
 		Z_TYPE_PP(views_path) != IS_STRING || Z_STRLEN_PP(views_path) == 0 ){
 		php_error(E_ERROR, "Your config 'views_path' does not appear to be formatted correctly.");
 	}
@@ -243,7 +255,7 @@ PHP_METHOD(cii_loader, model){
 	/*
 	*	model filepath
 	*/
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "models_path", 12, (void**)&models_path) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "models_path", 12, (void**)&models_path) == FAILURE ||
 		Z_TYPE_PP(models_path) != IS_STRING || Z_STRLEN_PP(models_path) == 0 ){
 		php_error(E_ERROR, "Your config 'models_path' does not appear to be formatted correctly.");
 	}
@@ -390,7 +402,7 @@ PHP_METHOD(cii_loader, helper){
 	/*
 	*	helper filepath
 	*/
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "helpers_path", 13, (void**)&helper_path) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "helpers_path", 13, (void**)&helper_path) == FAILURE ||
 		Z_TYPE_PP(helper_path) != IS_STRING || Z_STRLEN_PP(helper_path) == 0 ){
 		php_error(E_ERROR, "Your config 'helpers_path' does not appear to be formatted correctly.");
 	}
@@ -464,7 +476,7 @@ PHP_METHOD(cii_loader, library){
 	*	library filepath
 	*/
 	
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "libraries_path", 15, (void**)&libraries_path) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "libraries_path", 15, (void**)&libraries_path) == FAILURE ||
 		Z_TYPE_PP(libraries_path) != IS_STRING || Z_STRLEN_PP(libraries_path) == 0 ){
 		php_error(E_ERROR, "Your config 'libraries_path' does not appear to be formatted correctly.");
 	}
@@ -538,18 +550,18 @@ PHP_METHOD(cii_loader, database)
 	zval **database;
 	zval **params[4];
 
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "hostname", 9, (void**)&hostname) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "hostname", 9, (void**)&hostname) == FAILURE ||
 		Z_TYPE_PP(hostname) != IS_STRING || Z_STRLEN_PP(hostname) == 0 ){
 		php_error(E_ERROR, "Your database config 'hostname' does not appear to be formatted correctly.");
 	}
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "username", 9, (void**)&username) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "username", 9, (void**)&username) == FAILURE ||
 		Z_TYPE_PP(username) != IS_STRING || Z_STRLEN_PP(username) == 0 ){
 		php_error(E_ERROR, "Your database config 'username' does not appear to be formatted correctly.");
 	}
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "password", 9, (void**)&password) == FAILURE ){
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "password", 9, (void**)&password) == FAILURE ){
 		php_error(E_ERROR, "Your database config 'password' does not appear to be formatted correctly.");
 	}
-	if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "database", 9, (void**)&database) == FAILURE ||
+	if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "database", 9, (void**)&database) == FAILURE ||
 		Z_TYPE_PP(database) != IS_STRING || Z_STRLEN_PP(database) == 0 ){
 		php_error(E_ERROR, "Your database config 'database' does not appear to be formatted correctly.");
 	}
@@ -586,6 +598,60 @@ PHP_METHOD(cii_loader, language){
 
 }
 
+/**
+* CII Internal Class Object Loader
+*
+* @param	string	$name	CII Internal class name whthout prefix 'cii_'
+* @return	object | bool
+*
+* public function internal()
+*/
+PHP_METHOD(cii_loader, internal)
+{
+	char *name;
+	uint name_len;
+	char *full_name;
+	zend_class_entry **ce;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE){
+		RETURN_FALSE;
+	}
+
+	if( !name_len ){
+		RETURN_FALSE;
+	}
+
+	spprintf(&full_name, 0, "cii_%s", name);
+
+	if( zend_hash_find(CG(class_table), full_name, name_len+4+1, (void**)&ce) == SUCCESS ){
+		zval *new_object;
+		/*
+		*	new ce object
+		*/
+		MAKE_STD_ZVAL(new_object);
+		object_init_ex(new_object, *ce);
+		/*
+		*	call new object construct function
+		*/
+		if (zend_hash_exists(&(*ce)->function_table, "__construct", 12)) {
+			zval *retval;
+			CII_CALL_USER_METHOD_EX(&new_object, "__construct", &retval, 0, NULL);
+			zval_ptr_dtor(&retval);
+		}
+		//
+		zend_update_property(CII_G(controller_ce), CII_G(controller_obj), name, name_len, new_object TSRMLS_CC);
+		//
+		efree(full_name);
+		RETURN_ZVAL(new_object, 1, 1);
+	}else{
+		efree(full_name);
+		/*
+		*	class not exist, return false
+		*/
+		RETURN_FALSE;
+	}
+}
+
 zend_function_entry cii_loader_methods[] = {
 	PHP_ME(cii_loader, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	/*
@@ -599,6 +665,7 @@ zend_function_entry cii_loader_methods[] = {
 	PHP_ME(cii_loader, library, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, database, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(cii_loader, language, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(cii_loader, internal, NULL, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 

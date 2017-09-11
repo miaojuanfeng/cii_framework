@@ -66,94 +66,94 @@ PHP_METHOD(cii_output, append_output)
 *	display
 */
 int cii_display(char *output, uint output_len, char **output_new, uint *output_new_len TSRMLS_DC){
-	char *p = NULL;
-	char *free_output_new = NULL;
-	char retval = 0;
-	char *elapsed_time;
-	char elapsed_time_state;
+	// char *p = NULL;
+	// char *free_output_new = NULL;
+	// char retval = 0;
+	// char *elapsed_time;
+	// char elapsed_time_state;
 	
-	elapsed_time_state = elapsed_time_ex(cii_benchmark_ce, CII_G(benchmark_obj), "total_execution_time_start", 26, "total_execution_time_end", 24, 4, &elapsed_time TSRMLS_CC);
-	/*
-	*	replace {elapsed_time}
-	*/
-	*output_new = output;
-	*output_new_len = output_len;
-	//debug
-	//double start = cii_microtime();
-	//debug
-	while(CII_G(output_replace_elapsed_time)--){
-		p = strstr(*output_new, "{elapsed_time}");
-		if( p ){
-			p[13] = '\0';
-			p[0]  = '\0';
-			if( retval ){
-				free_output_new = *output_new;
-			}
-			*output_new_len = spprintf(output_new, 0, "%s%s%s", *output_new, elapsed_time, &p[14]);
-			if( free_output_new ){
-				efree(free_output_new);
-				free_output_new = NULL;
-			}
-			retval = 1;
-		}
-	}
-	/*
-	*	replace {memory_usage}
-	*/
-	while(CII_G(output_replace_memory_usage)--){
-		char *memory;
+	// elapsed_time_state = elapsed_time_ex(cii_benchmark_ce, CII_G(benchmark_obj), "total_execution_time_start", 26, "total_execution_time_end", 24, 4, &elapsed_time TSRMLS_CC);
+	// /*
+	// *	replace {elapsed_time}
+	// */
+	// *output_new = output;
+	// *output_new_len = output_len;
+	// //debug
+	// //double start = cii_microtime();
+	// //debug
+	// while(CII_G(output_replace_elapsed_time)--){
+	// 	p = strstr(*output_new, "{elapsed_time}");
+	// 	if( p ){
+	// 		p[13] = '\0';
+	// 		p[0]  = '\0';
+	// 		if( retval ){
+	// 			free_output_new = *output_new;
+	// 		}
+	// 		*output_new_len = spprintf(output_new, 0, "%s%s%s", *output_new, elapsed_time, &p[14]);
+	// 		if( free_output_new ){
+	// 			efree(free_output_new);
+	// 			free_output_new = NULL;
+	// 		}
+	// 		retval = 1;
+	// 	}
+	// }
+	// /*
+	// *	replace {memory_usage}
+	// */
+	// while(CII_G(output_replace_memory_usage)--){
+	// 	char *memory;
 
-		p = strstr(*output_new, "{memory_usage}");
-		if( p ){
-			p[13] = '\0';
-			p[0]  = '\0';
-			if( retval ){
-				free_output_new = *output_new;
-			}
-			memory = _php_math_number_format((double)zend_memory_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
-			*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[14]);
-			efree(memory);
-			if( free_output_new ){
-				efree(free_output_new);
-				free_output_new = NULL;
-			}
-			retval = 1;
-		}
-	}
-	/*
-	*	replace {memory_peak}
-	*/
-	while(CII_G(output_replace_memory_peak)--){
-		char *memory;
+	// 	p = strstr(*output_new, "{memory_usage}");
+	// 	if( p ){
+	// 		p[13] = '\0';
+	// 		p[0]  = '\0';
+	// 		if( retval ){
+	// 			free_output_new = *output_new;
+	// 		}
+	// 		memory = _php_math_number_format((double)zend_memory_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
+	// 		*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[14]);
+	// 		efree(memory);
+	// 		if( free_output_new ){
+	// 			efree(free_output_new);
+	// 			free_output_new = NULL;
+	// 		}
+	// 		retval = 1;
+	// 	}
+	// }
+	// /*
+	// *	replace {memory_peak}
+	// */
+	// while(CII_G(output_replace_memory_peak)--){
+	// 	char *memory;
 
-		p = strstr(*output_new, "{memory_peak}");
-		if( p ){
-			p[12] = '\0';
-			p[0]  = '\0';
-			if( retval ){
-				free_output_new = *output_new;
-			}
-			memory = _php_math_number_format((double)zend_memory_peak_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
-			*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[13]);
-			efree(memory);
-			if( free_output_new ){
-				efree(free_output_new);
-				free_output_new = NULL;
-			}
-			retval = 1;
-		}
-	}
-	/*
-	*	return state. 1 means replaced or 0 means not replaced
-	*/
-	//debug
-	//double end = cii_microtime();
-	//php_printf("time: %f\n", end-start);
-	//debug
-	if( elapsed_time_state ){
-		efree(elapsed_time);
-	}
-	return retval;
+	// 	p = strstr(*output_new, "{memory_peak}");
+	// 	if( p ){
+	// 		p[12] = '\0';
+	// 		p[0]  = '\0';
+	// 		if( retval ){
+	// 			free_output_new = *output_new;
+	// 		}
+	// 		memory = _php_math_number_format((double)zend_memory_peak_usage(0 TSRMLS_CC)/1024/1024, 2, '.', ',');
+	// 		*output_new_len = spprintf(output_new, 0, "%s%s%s%s", *output_new, memory, "MB", &p[13]);
+	// 		efree(memory);
+	// 		if( free_output_new ){
+	// 			efree(free_output_new);
+	// 			free_output_new = NULL;
+	// 		}
+	// 		retval = 1;
+	// 	}
+	// }
+	// /*
+	// *	return state. 1 means replaced or 0 means not replaced
+	// */
+	// //debug
+	// //double end = cii_microtime();
+	// //php_printf("time: %f\n", end-start);
+	// //debug
+	// if( elapsed_time_state ){
+	// 	efree(elapsed_time);
+	// }
+	// return retval;
 }
 /**
 * Display Output

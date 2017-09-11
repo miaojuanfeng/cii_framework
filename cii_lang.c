@@ -107,7 +107,7 @@ PHP_METHOD(cii_lang, load)
 
 	if( !idiom ){
 		zval **defaultl;
-		if( zend_hash_find(Z_ARRVAL_P(CII_G(configs)), "language", 9, (void**)&defaultl) != FAILURE ){
+		if( zend_hash_find(Z_ARRVAL_P(CII_G(config_arr)), "language", 9, (void**)&defaultl) != FAILURE ){
 			idiom = *defaultl;
 		}
 	}
