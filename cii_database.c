@@ -751,6 +751,32 @@ PHP_METHOD(cii_database, or_where)
 	}
 	RETURN_TRUE;
 }
+
+PHP_METHOD(cii_database, escape_string)
+{
+	zval *str;
+	zval *db_obj;
+	zval **params[1];
+	zval *func_name;
+	zval *retval;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &str) == FAILURE) {
+		WRONG_PARAM_COUNT;
+	}
+
+	db_obj = zend_read_property(cii_database_ce, getThis(), ZEND_STRL("conn_id"), 1 TSRMLS_CC);
+
+	params[0] = &str;
+
+	MAKE_STD_ZVAL(func_name);
+	ZVAL_STRING(func_name, "real_escape_string", 1);
+	if( call_user_function_ex(NULL, &db_obj, func_name, &retval, 1, params, 0, NULL TSRMLS_CC) == FAILURE ){
+		php_error(E_ERROR, "Call Mysqli::real_escape_string() function failed");
+	}
+	zval_ptr_dtor(&func_name);
+
+	RETURN_ZVAL(retval, 1, 1);
+}
 /****************************************************************/
 PHP_METHOD(cii_db_result, __construct)
 {
@@ -963,6 +989,7 @@ PHP_MINIT_FUNCTION(cii_database)
 		PHP_ME(cii_database, __construct,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 		PHP_ME(cii_database, query,   NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, affected_rows, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, escape_string, NULL, ZEND_ACC_PUBLIC)
 		//
 		PHP_ME(cii_database, select, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, from, NULL, ZEND_ACC_PUBLIC)
