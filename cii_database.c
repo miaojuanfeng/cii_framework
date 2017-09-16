@@ -752,7 +752,7 @@ PHP_METHOD(cii_database, or_where)
 	RETURN_TRUE;
 }
 
-PHP_METHOD(cii_database, escape_string)
+PHP_METHOD(cii_database, escape_str)
 {
 	zval *str;
 	zval *db_obj;
@@ -989,7 +989,7 @@ PHP_MINIT_FUNCTION(cii_database)
 		PHP_ME(cii_database, __construct,  NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 		PHP_ME(cii_database, query,   NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, affected_rows, NULL, ZEND_ACC_PUBLIC)
-		PHP_ME(cii_database, escape_string, NULL, ZEND_ACC_PUBLIC)
+		PHP_ME(cii_database, escape_str, NULL, ZEND_ACC_PUBLIC)
 		//
 		PHP_ME(cii_database, select, NULL, ZEND_ACC_PUBLIC)
 		PHP_ME(cii_database, from, NULL, ZEND_ACC_PUBLIC)
