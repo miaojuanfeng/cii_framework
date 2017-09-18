@@ -1,5 +1,5 @@
 # cii_framework
-Codeigniter Internal Framework. Working as PHP extension, Faster than Codeigniter Framework.
+Codeigniter Internal Framework. Working as PHP extension, Faster than CodeIgniter Framework.
 
 ### 简介
 CII 是一个小巧但功能强大的 PHP 扩展框架，作为一个简单优雅的工具包，它可以为 PHP 程序员建立功能完善并且快速的 Web 应用程序。
@@ -42,3 +42,7 @@ CII 框架支持PHP的单线程模式与多线程模式。如果 PHP 被编译�
 ```
 
 如果 PHP 被编译成 Apache 模块，采用多线程方式与服务器协作，编译 PHP 时需要开启多线程模式。线上安装请关闭 PHP 的 Debug 模式，去除 `--enable-debug`。
+
+### Document
+
+[CII - PHP内核扩展框架](https://miaojuanfeng.gitbooks.io/cii-framework/content)
